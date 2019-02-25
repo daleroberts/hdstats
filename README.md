@@ -1,6 +1,6 @@
 # hdstats
 
-<img align="right" src="https://github.com/daleroberts/itermplot/raw/master/docs/joint.png">
+<img align="right" src="https://github.com/daleroberts/hdstats/raw/master/docs/joint.png">
 
 A library of multivariate and high-dimensional statistics algorithms.
 
