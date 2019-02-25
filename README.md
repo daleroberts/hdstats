@@ -16,3 +16,27 @@ The mission of this library is to provide algorithms for multivariate data where
 #### Euclidean (Geometric) Median Absolute Deviation (MAD)
 
 
+#### Generalised Variance
+
+
+
+#### Empirical spectral distribution
+
+
+#### Two-sample tests of mean
+
+#### Two-sample test of geometric median
+
+#### Two-sample tests of covariance
+
+
+#### Multivariate Gaussian distribution
+
+#### Wishart distribution
+
+#### Marchenko-Pastur density
+
+#### Generalised Marchenko-Pastur density
+
+#### Constrained Gaussian distribution
+
