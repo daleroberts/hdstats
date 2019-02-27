@@ -16,10 +16,15 @@ Accelerated generation of geometric median pixel composite mosaics from a stack 
 
 #### Weighted geometric median PCM
 
+Accelerated generation of weighted geometric median pixel composite mosaics from a stack of data; see [example](https://github.com/daleroberts/hdstats/blob/master/docs/wgeomedian.ipynb).
+
 #### Spectral (Geometric) Median Absolute Deviation (MAD)
+
+Accelerated generation of spectral (geometric) median absolute deviation pixel composite mosaics from a stack of data; see [example](https://github.com/daleroberts/hdstats/blob/master/docs/mad.ipynb).
 
 #### Euclidean (Geometric) Median Absolute Deviation (MAD)
 
+Accelerated generation of Euclidean (geometric) median absolute deviation pixel composite mosaics from a stack of data; see [example](https://github.com/daleroberts/hdstats/blob/master/docs/mad.ipynb).
 
 #### Generalised Variance
 
