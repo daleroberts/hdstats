@@ -28,25 +28,40 @@ Accelerated generation of Euclidean (geometric) median absolute deviation pixel 
 
 #### Generalised Variance
 
-
-
-#### Empirical spectral distribution
-
-
-#### Two-sample tests of mean
-
-#### Two-sample test of geometric median
-
-#### Two-sample tests of covariance
-
+Generalised variance of multivariate observations; see [example](https://github.com/daleroberts/hdstats/blob/master/docs/mvn.ipynb).
 
 #### Multivariate Gaussian distribution
 
+Multivariate Gaussian distribution; see [example](https://github.com/daleroberts/hdstats/blob/master/docs/mvn.ipynb).
+
 #### Wishart distribution
+
+The Wishart distribution; see [example](https://github.com/daleroberts/hdstats/blob/master/docs/wishart.ipynb).
+
+#### Empirical spectral distribution
+
+The empirical spectral distribution; see [example](https://github.com/daleroberts/hdstats/blob/master/docs/mp.ipynb).
 
 #### Marchenko-Pastur density
 
+The Marchenko-Pastur distribution; see [example](https://github.com/daleroberts/hdstats/blob/master/docs/mp.ipynb).
+
 #### Generalised Marchenko-Pastur density
+
+The generalised Marchenko-Pastur distribution; see [example](https://github.com/daleroberts/hdstats/blob/master/docs/mp.ipynb).
+
+#### Two-sample tests of mean
+
+Various tests of mean between two samples; see [example](https://github.com/daleroberts/hdstats/blob/master/docs/twosample.ipynb).
+
+#### Two-sample test of geometric median
+
+A robust test of geometric median between two samples; see [example](https://github.com/daleroberts/hdstats/blob/master/docs/twosample.ipynb).
+
+#### Two-sample tests of covariance
+
+Various tests of covariances between two samples; see [example](https://github.com/daleroberts/hdstats/blob/master/docs/twosample.ipynb).
 
 #### Constrained Gaussian distribution
 
+Constrained multivariate Gaussian distribution; see [example](https://github.com/daleroberts/hdstats/blob/master/docs/constrained.ipynb).
