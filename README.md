@@ -15,7 +15,7 @@ Reduce in the last dimension
 
 #### Geometric median PCM
 
-Generate geometric median pixel composite mosaics from a stack of data using `nangeomedian_pcm`; see [example](https://github.com/daleroberts/hdstats/docs/geomedian.ipynb).
+Generate geometric median pixel composite mosaics from a stack of data using `nangeomedian_pcm`; see [example](https://github.com/daleroberts/hdstats/blob/master/docs/geomedian.ipynb).
 
 
 #### Weighted geometric median
