@@ -3,19 +3,39 @@ hdstats: High-dimensional statistics.
 """
 
 import numpy as np
+import sys
+
 from setuptools import setup, find_packages, Extension
 from setuptools import setup, Extension
 
 from Cython.Distutils import build_ext
 
-macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
+#macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
+macros=[]
 
 npinclude = np.get_include()
-rdinclude = np.get_include() + '/../../random/'
+rdinclude = np.random.__path__[0] + '/'
+
+if sys.platform == 'darwin':
+    # Needs openmp lib installed: brew install libomp
+    cc_flags = ["-Xpreprocessor", "-fopenmp"]
+    ld_flags = ["-lomp"]
+else:
+    cc_flags = ['-fopenmp']
+    ld_flags = ['-fopenmp']
+
+build_cfg = dict(
+    include_dirs=[npinclude],
+    extra_compile_args=cc_flags,
+    extra_link_args=ld_flags,
+    define_macros=macros,
+)
 
 extensions = [
-        Extension('hdstats.geomedian', ['hdstats/geomedian.pyx'], include_dirs = [np.get_include()], define_macros=macros),
-#        Extension('hdstats.wishart', ['hdstats/wishart.pyx'], include_dirs = [np.get_include(), rdinclude], define_macros=macros)
+        Extension('hdstats.geomedian', ['hdstats/geomedian.pyx'], **build_cfg),
+        Extension('hdstats.pcm', ['hdstats/pcm.pyx'], **build_cfg),
+        Extension('hdstats.truncated', ['hdstats/truncated.pyx', 'hdstats/randomkit.c'], **build_cfg),
+        Extension('hdstats.wishart', ['hdstats/wishart.pyx', 'hdstats/randomkit.c'], **build_cfg),
 ]
 
 setup(
