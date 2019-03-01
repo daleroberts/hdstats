@@ -1,5 +1,3 @@
-# Copyright (C) 2019 Dale Roberts - All Rights Reserved
-
 # cython: cdivision=True, boundscheck=False, nonecheck=False, wraparound=False, language_level=3
 
 import numpy as np
