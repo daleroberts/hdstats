@@ -64,6 +64,3 @@ A robust test of geometric median between two samples; see [example](https://git
 
 Various tests of covariances between two samples; see [example](https://github.com/daleroberts/hdstats/blob/master/docs/twosample.ipynb).
 
-#### Constrained Gaussian distribution
-
-Constrained multivariate Gaussian distribution; see [example](https://github.com/daleroberts/hdstats/blob/master/docs/constrained.ipynb).
