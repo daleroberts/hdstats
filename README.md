@@ -60,7 +60,4 @@ Various tests of mean between two samples; see [example](https://github.com/dale
 
 A robust test of geometric median between two samples; see [example](https://github.com/daleroberts/hdstats/blob/master/docs/twosample.ipynb).
 
-#### Two-sample tests of covariance
-
-Various tests of covariances between two samples; see [example](https://github.com/daleroberts/hdstats/blob/master/docs/twosample.ipynb).
 
