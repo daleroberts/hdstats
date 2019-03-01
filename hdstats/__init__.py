@@ -6,3 +6,4 @@ from .geomedian import geomedian, nangeomedian
 from .constrained import sample_constrained_gaussian, thresholds_to_constraints
 from .pcm import gm as nangeomedian_pcm, wgm as nanwgeomedian_pcm, emad as emad_pcm, smad as smad_pcm, max_threads
 from .basic import nancov, gv
+from .twosample import test_sample_means
