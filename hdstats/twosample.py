@@ -1,8 +1,12 @@
 import numpy as np
 import numpy.linalg as la
+import scipy.linalg as sla
 
 from scipy.stats import f as fisher_f
 from scipy.stats import norm
+from scipy.stats import chi2
+
+from .geomedian import geomedian, nangeomedian
 
 def _hotelling_test_statistic(x, y):
     nx = x.shape[0]
@@ -94,15 +98,110 @@ def _test_sample_means_chen_qin(x, y):
     return (test_stat, pval)
 
 
-METHODS = {
+MEAN_METHODS = {
         'Hotelling': _test_sample_means_hotelling,
         'BaiSarandasa': _test_sample_means_bai_sarandasa,
         'ChenQin': _test_sample_means_chen_qin
 }
 
 def test_sample_means(x, y, method='Hotelling'):
-    avail = list(METHODS.keys())
+    avail = list(MEAN_METHODS.keys())
     if method not in avail:
         raise ValueError(f'Incorrect method, available methods are: {avail}')
-    return METHODS[method](x,y)
+    return MEAN_METHODS[method](x,y)
 
+
+def _test_sample_geomedian_rublik_somorcik(x,y):
+    def pairdiff(X):
+        n, p = X.shape
+        D = np.empty((int(n*(n-1)/2), p))
+        k = 0
+        for i in range(n-1):
+            for j in range(i+1, n):
+                D[k,:] = X[i,:]-X[j,:]
+                k = k + 1
+        return D
+    
+    def SSCov(X):
+        D = pairdiff(X)
+        Ds = D/la.norm(D, axis=1).reshape((-1,1))
+        return np.einsum('ij,ik->jk', Ds, Ds) / (X.shape[0]*(X.shape[0]-1)/2)
+    
+    def shape_det(a):
+        return a/(la.det(a)**(1/a.shape[1]))
+    
+    def duembgen_shape(X, maxiters=1000, init=None):
+        n,p = X.shape
+        if init is None:
+            init = np.cov(X, rowvar=False)
+        init = shape_det(init)
+        it = 0
+        V = init.copy()
+        while it < maxiters:
+            sqrtV = sla.sqrtm(V)
+            V1 = sqrtV @ SSCov(X @ la.inv(sqrtV)) @ sqrtV
+            V1 = shape_det(V1)
+            if la.norm(V1-V) < 0.0001:
+                break
+            V = V1.copy()
+            it = it + 1
+        #print('iters: {}'.format(it))
+        return V1
+    
+    def U(x):
+        return x/la.norm(x)
+    
+    def P(x):
+        nrm = la.norm(x)
+        I = np.identity(len(x))
+        return (I - np.outer(x, x)/(nrm**2))/nrm
+    
+    
+    X = np.vstack([x, y])
+    n = np.array([x.shape[0], y.shape[0]])
+    W = duembgen_shape(X)
+    Wsqrt = sla.sqrtm(W)
+    Y = X @ la.inv(Wsqrt)
+    eta = []
+    cns = np.cumsum(n)
+    for j in range(len(n)):
+        si, ei = cns[j] - n[j], cns[j]
+        gm = np.array(geomedian(Y[si:ei], axis=0))
+        eta.append(Wsqrt @ gm)
+    eta = np.stack(eta)
+    Ygm = np.array(geomedian(Y, axis=0))
+    
+    def U(x):
+        return x/la.norm(x)
+    
+    def P(x):
+        nrm = la.norm(x)
+        I = np.identity(len(x))
+        return (I - np.outer(x, x)/(nrm**2))/nrm
+    
+    D1 = np.mean(np.apply_along_axis(P, 1, Y-Ygm), axis=0)
+    D2 = np.cov(np.apply_along_axis(U, 1, Y-Ygm), rowvar=False, bias=True)
+    invB = la.inv(Wsqrt) @ D1 @ la.inv(D2) @ D1 @ la.inv(Wsqrt)
+    A1 = n @ eta / np.sum(n)
+    A2 = Wsqrt @ Ygm
+    
+    dist = chi2((n.shape[0]-1)*X.shape[1])
+    loc = A2
+    A = 0
+    for j in range(n.shape[0]):
+        A = A + n[j]*(eta[j]-loc).T @ invB @ (eta[j]-loc)
+
+    pvalue = 1. - dist.cdf(A)
+
+    return (A, pvalue)
+
+
+MEDIAN_METHODS = {
+        'RublikSomorcik': _test_sample_geomedian_rublik_somorcik,
+}
+
+def test_sample_geomedians(x, y, method='RublikSomorcik'):
+    avail = list(MEDIAN_METHODS.keys())
+    if method not in avail:
+        raise ValueError(f'Incorrect method, available methods are: {avail}')
+    return MEDIAN_METHODS[method](x,y)
