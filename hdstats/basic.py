@@ -1,3 +1,5 @@
+import numpy as np
+
 def nancov(m, y=None, rowvar=1, ddof=1, fweights=None, aweights=None, pairwise=False):
 
     if ddof is not None and ddof != int(ddof):
@@ -100,7 +102,9 @@ def nancov(m, y=None, rowvar=1, ddof=1, fweights=None, aweights=None, pairwise=F
             fact = pair_w_sum - ddof * ddof_weight / pair_w_sum
 
         if np.any(fact <= 0):
-            warnings.warn("Degrees of freedom <= 0 for a slice", RuntimeWarning, stacklevel=2)
+            warnings.warn(
+                "Degrees of freedom <= 0 for a slice", RuntimeWarning, stacklevel=2
+            )
             fact[fact <= 0] = 0.0
 
         c *= 1.0 / fact.astype(np.float64)
@@ -123,4 +127,27 @@ def nancov(m, y=None, rowvar=1, ddof=1, fweights=None, aweights=None, pairwise=F
         else:
             X_nonan = X[:, ~nan_obvs]
 
-        return np.cov(X_nonan, rowvar=rowvar, ddof=ddof, fweights=fweights, aweights=aweights)
+        return np.cov(
+            X_nonan, rowvar=rowvar, ddof=ddof, fweights=fweights, aweights=aweights
+        )
+
+
+def gv(X, log=False):
+    """
+    Generalised variance.
+
+    Missing data should be represented as np.nan
+
+    Parameters
+    ----------
+
+    X : array_like
+       Data matrix of dimensions (n, p)
+    log : bool
+       Return the log(gv)
+    """
+    value = np.linalg.det(nancov(X))
+    if log:
+        return np.log(value)
+    else:
+        return value
