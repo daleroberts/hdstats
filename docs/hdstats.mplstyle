@@ -1,0 +1,68 @@
+lines.linewidth: 1.0
+lines.antialiased: True
+lines.markersize: 0.8
+
+patch.linewidth: 0.4
+patch.force_edgecolor: True
+patch.facecolor: white
+patch.edgecolor: black
+patch.antialiased: True
+
+image.cmap: PuRd
+image.origin: upper
+image.interpolation: nearest
+
+axes.facecolor: white
+axes.edgecolor: black
+axes.linewidth: 1.0
+axes.grid: False
+axes.titlesize: medium
+axes.labelsize: small
+axes.labelcolor: k
+axes.axisbelow: True
+#axes.prop_cycle: cycler('color', ['ff00ff', '990099', '330033', '000000']) 
+axes.prop_cycle: cycler('color', ['df64af', 'd81b6a', '8d003b', '000000'])
+
+
+xtick.labelsize: small
+xtick.major.size: 4
+xtick.minor.size: 2
+xtick.minor.visible: True
+xtick.major.pad: 3
+xtick.minor.pad: 3
+xtick.color: black
+xtick.direction: in
+
+ytick.labelsize: small
+ytick.major.size: 4
+ytick.minor.size: 2
+ytick.minor.visible: True
+ytick.major.pad: 3
+ytick.minor.pad: 3
+ytick.color: black
+ytick.direction: in
+
+boxplot.flierprops.markersize: 3
+
+legend.frameon: False
+legend.fancybox: False
+legend.fontsize: small
+legend.loc: best
+
+figure.facecolor: 1.0
+figure.edgecolor: 0.50
+figure.subplot.hspace: 0.5
+figure.dpi: 100
+figure.figsize: 3.0, 3.0
+
+grid.color: cccccc
+
+savefig.dpi: 72
+
+font.size: 10.0
+font.family: sans-serif
+font.weight: normal
+
+text.hinting: auto
+text.antialiased: False
+text.hinting_factor: 2
