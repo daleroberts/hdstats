@@ -18,8 +18,8 @@ rdinclude = np.random.__path__[0] + '/'
 
 if sys.platform == 'darwin':
     # Needs openmp lib installed: brew install libomp
-    cc_flags = ["-Xpreprocessor", "-fopenmp"]
-    ld_flags = ["-lomp"]
+    cc_flags = ["-I/usr/local/include", "-Xpreprocessor", "-fopenmp"]
+    ld_flags = ["-L/usr/local/lib", "-lomp"]
 else:
     cc_flags = ['-fopenmp']
     ld_flags = ['-fopenmp']
