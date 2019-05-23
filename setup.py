@@ -11,7 +11,7 @@ from setuptools import setup, Extension
 from Cython.Distutils import build_ext
 
 #macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
-macros=[]
+macros = []
 
 npinclude = np.get_include()
 rdinclude = np.random.__path__[0] + '/'
@@ -34,6 +34,8 @@ build_cfg = dict(
 extensions = [
         Extension('hdstats.geomedian', ['hdstats/geomedian.pyx'], **build_cfg),
         Extension('hdstats.pcm', ['hdstats/pcm.pyx'], **build_cfg),
+        Extension('hdstats.ts', ['hdstats/ts.pyx'], **build_cfg),
+        Extension('hdstats.dtw', ['hdstats/dtw.pyx'], **build_cfg),
         Extension('hdstats.truncated', ['hdstats/truncated.pyx', 'hdstats/randomkit.c'], **build_cfg),
         Extension('hdstats.wishart', ['hdstats/wishart.pyx', 'hdstats/randomkit.c'], **build_cfg),
 ]
