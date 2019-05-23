@@ -4,9 +4,6 @@ import hdstats
 import joblib
 import pytest
 
-import dtw as sdtw
-
-
 class TestDynamicTimeWarping:
     def test_warp(self):
         x = np.array([0, 0, 1, 1, 2, 4, 2, 1, 2, 0]).reshape(-1, 1)
