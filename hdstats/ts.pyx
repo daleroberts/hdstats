@@ -69,7 +69,7 @@ def cosdist(floating [:, :, :, :] X, floating [:,:,:] gm, num_threads=None):
     else:
         nthreads = 1
 
-    print(r'Using {nthreads} threads')
+    print(f'Using {nthreads} threads')
     
     result = np.empty((m, q, n), dtype=dtype)
 
@@ -119,7 +119,7 @@ def eucdist(floating [:, :, :, :] X, floating [:,:,:] gm, num_threads=None):
     else:
         nthreads = 1
         
-    print(r'Using {nthreads} threads')
+    print(f'Using {nthreads} threads')
 
     result = np.empty((m, q, n), dtype=dtype)
     
