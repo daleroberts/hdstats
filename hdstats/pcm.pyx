@@ -1,7 +1,7 @@
 #cython: boundscheck=False, wraparound=False, nonecheck=False, cdivision=True, language_level=3, embedsignature=True
 
 import numpy as np
-cimport numpy as cnp
+cimport numpy as np
 
 cimport openmp
 
@@ -9,12 +9,10 @@ from cython.parallel import prange, parallel, threadid
 from libc.stdlib cimport abort, malloc, free
 from libc.math cimport isnan, sqrt, acos, fabs, exp, log
 
-ctypedef fused floating:
-    cnp.float32_t
-    cnp.float64_t
-    
-ctypedef cnp.float32_t float32_t
-ctypedef cnp.float64_t float64_t
+ctypedef np.float32_t floating
+
+ctypedef np.float32_t float32_t
+ctypedef np.float64_t float64_t
 
 def max_threads():
     return openmp.omp_get_max_threads()
@@ -34,8 +32,8 @@ def __gm(floating [:, :, :, :] X, floating [:, :, :] mX, floating [:] w,
     cdef float64_t nan = <float64_t> np.nan
     cdef floating *D
     cdef floating *Dinv
-    cdef floating *W
     cdef floating *T
+    cdef floating *W
     cdef floating *y
     cdef floating *y1
     cdef floating *R
@@ -193,7 +191,7 @@ def __gm(floating [:, :, :, :] X, floating [:, :, :] mX, floating [:] w,
         free(T)
         free(R)
 
-def gm(floating [:, :, :, :] X, weight=None, maxiters=1000, floating eps=1e-4, num_threads=None):
+def gm(np.ndarray[floating, ndim=4] X, weight=None, maxiters=1000, floating eps=1e-4, num_threads=None):
     """
     Generate a geometric median pixel composite mosaic by reducing along the last axis.
 
@@ -220,10 +218,7 @@ def gm(floating [:, :, :, :] X, weight=None, maxiters=1000, floating eps=1e-4, n
     cdef size_t p = X.shape[2]
     cdef size_t n = X.shape[3]
     
-    if floating is cnp.float32_t:
-        dtype = np.float32
-    else:
-        dtype = np.float64
+    dtype = np.float32
         
     if weight is None:
         w = np.ones((n,), dtype=dtype)
@@ -441,7 +436,7 @@ def __wgm(floating [:, :, :, :] X, floating [:, :, :] mX,
         free(T)
         free(R)
 
-def wgm(floating [:, :, :, :] X, bi, bj, rho=1.0, delta=1.0, alpha=None, 
+def wgm(np.ndarray[floating, ndim=4] X, bi, bj, rho=1.0, delta=1.0, alpha=None, 
         gamma=None, beta=None, sigma=None, maxiters=1000, floating eps=1e-4,
         num_threads=None):
     """
@@ -498,7 +493,7 @@ def wgm(floating [:, :, :, :] X, bi, bj, rho=1.0, delta=1.0, alpha=None,
     cdef size_t p = X.shape[2]
     cdef size_t n = X.shape[3]
     
-    if floating is cnp.float32_t:
+    if X.dtype is np.float32:
         dtype = np.float32
     else:
         dtype = np.float64
@@ -560,7 +555,7 @@ def __emad(floating [:, :, :, :] X, floating [:, :, :] gm, floating [:,:,:] resu
                     result[row, col, t] = sqrt(total)
             
 
-def emad(floating [:, :, :, :] X, floating [:,:,:] gm, num_threads=None):
+cpdef emad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_threads=None):
     """
     Generate a Euclidean geometric median absolute deviation pixel 
     composite mosaic by reducing along the last axis.
@@ -584,7 +579,7 @@ def emad(floating [:, :, :, :] X, floating [:,:,:] gm, num_threads=None):
     cdef size_t p = X.shape[2]
     cdef size_t n = X.shape[3]
     
-    if floating is cnp.float32_t:
+    if X.dtype is np.float32:
         dtype = np.float32
     else:
         dtype = np.float64
@@ -596,7 +591,7 @@ def emad(floating [:, :, :, :] X, floating [:,:,:] gm, num_threads=None):
     return np.median(result, axis=2)
 
 
-def __smad(floating [:, :, :, :] X, floating [:, :, :] gm, floating [:,:,:] result, num_threads=None):
+def __smad(floating[:, :, :, :] X, floating[:, :, :] gm, floating[:,:,:] result, num_threads=None):
     """ """
     cdef size_t m = X.shape[0]
     cdef size_t q = X.shape[1]
@@ -631,7 +626,7 @@ def __smad(floating [:, :, :, :] X, floating [:, :, :] gm, floating [:,:,:] resu
                     result[row, col, t] = 1. - numer/(sqrt(norma)*sqrt(normb))
                     
 
-def smad(floating [:, :, :, :] X, floating [:,:,:] gm, num_threads=None):
+def smad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_threads=None):
     """
     Generate a spectral geometric median absolute deviation pixel 
     composite mosaic by reducing along the last axis.
@@ -658,7 +653,7 @@ def smad(floating [:, :, :, :] X, floating [:,:,:] gm, num_threads=None):
     cdef size_t p = X.shape[2]
     cdef size_t n = X.shape[3]
     
-    if floating is cnp.float32_t:
+    if X.dtype is np.float32:
         dtype = np.float32
     else:
         dtype = np.float64
