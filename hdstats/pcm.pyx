@@ -8,6 +8,7 @@ cimport openmp
 from cython.parallel import prange, parallel, threadid
 from libc.stdlib cimport abort, malloc, free
 from libc.math cimport isnan, sqrt, acos, fabs, exp, log
+from .utils import get_max_threads
 
 ctypedef np.float32_t floating
 ctypedef np.float32_t float32_t
@@ -15,12 +16,6 @@ ctypedef np.float64_t float64_t
 
 MAXITERS = 10000
 EPS = 1e-4
-
-
-def get_max_threads():
-    n = openmp.omp_get_max_threads()
-    print('Automatically using %i threads.' % (n,))
-    return n
 
 
 def __gm(floating [:, :, :, :] X, floating [:, :, :] mX, floating [:] w,

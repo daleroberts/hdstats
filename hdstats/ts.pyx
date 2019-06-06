@@ -6,32 +6,28 @@ import hdstats
 from astropy.convolution import Gaussian2DKernel, interpolate_replace_nans
 from scipy.signal import cwt, find_peaks_cwt, ricker, welch
 
-cimport numpy as cnp
+cimport numpy as np
 cimport openmp
 
 from cython.parallel import prange, parallel, threadid
 from libc.stdlib cimport abort, malloc, free
 from libc.math cimport isnan, sqrt, acos, fabs, exp, log
+from .utils import get_max_threads
 
-ctypedef fused floating:
-    cnp.float32_t
-    cnp.float64_t
-    
-ctypedef cnp.float32_t float32_t
-ctypedef cnp.float64_t float64_t
+ctypedef np.float32_t floating
+ctypedef np.float32_t float32_t
+ctypedef np.float64_t float64_t
 
-cpdef max_threads():
-    return openmp.omp_get_max_threads()
 
-def _cosdist(floating [:, :, :, :] X, floating [:, :, :] gm, floating [:,:,:] result, num_threads):
+def __cosdist(floating [:, :, :, :] X, floating [:, :, :] gm, floating [:,:,:] result, num_threads):
     """ """
-    cdef size_t m = X.shape[0]
-    cdef size_t q = X.shape[1]
-    cdef size_t p = X.shape[2]
-    cdef size_t n = X.shape[3]
+    cdef int m = X.shape[0]
+    cdef int q = X.shape[1]
+    cdef int p = X.shape[2]
+    cdef int n = X.shape[3]
     
     cdef float64_t numer, norma, normb, value
-    cdef size_t j, t, row, col
+    cdef int j, t, row, col
 
     cdef int number_of_threads = num_threads
 
@@ -53,39 +49,32 @@ def _cosdist(floating [:, :, :, :] X, floating [:, :, :] gm, floating [:,:,:] re
                     result[row, col, t] = 1. - numer/(sqrt(norma)*sqrt(normb))
                     
 
-def cosdist(floating [:, :, :, :] X, floating [:,:,:] gm, num_threads=None):
-    cdef size_t m = X.shape[0]
-    cdef size_t q = X.shape[1]
-    cdef size_t p = X.shape[2]
-    cdef size_t n = X.shape[3]
+def cosdist(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_threads=None):
+    cdef int m = X.shape[0]
+    cdef int q = X.shape[1]
+    cdef int p = X.shape[2]
+    cdef int n = X.shape[3]
     
-    if floating is cnp.float32_t:
-        dtype = np.float32
-    else:
-        dtype = np.float64
+    dtype = np.float32
 
     if num_threads is None:
-        nthreads = max_threads()
-    else:
-        nthreads = 1
+        num_threads = get_max_threads()
 
-    print(f'Using {nthreads} threads')
-    
     result = np.empty((m, q, n), dtype=dtype)
 
-    _cosdist(X, gm, result, nthreads)
+    __cosdist(X, gm, result, num_threads)
     
     return result
 
 
-def _eucdist(floating [:, :, :, :] X, floating [:, :, :] gm, floating [:,:,:] result, num_threads):
-    cdef size_t m = X.shape[0]
-    cdef size_t q = X.shape[1]
-    cdef size_t p = X.shape[2]
-    cdef size_t n = X.shape[3]
+def __eucdist(floating [:, :, :, :] X, floating [:, :, :] gm, floating [:,:,:] result, num_threads):
+    cdef int m = X.shape[0]
+    cdef int q = X.shape[1]
+    cdef int p = X.shape[2]
+    cdef int n = X.shape[3]
     
     cdef float64_t total, value
-    cdef size_t j, t, row, col
+    cdef int j, t, row, col
 
     cdef int number_of_threads = num_threads
 
@@ -103,27 +92,20 @@ def _eucdist(floating [:, :, :, :] X, floating [:, :, :] gm, floating [:,:,:] re
                     result[row, col, t] = sqrt(total)
                     
 
-def eucdist(floating [:, :, :, :] X, floating [:,:,:] gm, num_threads=None):
-    cdef size_t m = X.shape[0]
-    cdef size_t q = X.shape[1]
-    cdef size_t p = X.shape[2]
-    cdef size_t n = X.shape[3]
+def eucdist(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_threads=None):
+    cdef int m = X.shape[0]
+    cdef int q = X.shape[1]
+    cdef int p = X.shape[2]
+    cdef int n = X.shape[3]
     
-    if floating is cnp.float32_t:
-        dtype = np.float32
-    else:
-        dtype = np.float64
+    dtype = np.float32
 
     if num_threads is None:
-        nthreads = max_threads()
-    else:
-        nthreads = 1
-        
-    print(f'Using {nthreads} threads')
+        num_threads = get_max_threads()
 
     result = np.empty((m, q, n), dtype=dtype)
     
-    _eucdist(X, gm, result, nthreads)
+    __eucdist(X, gm, result, num_threads)
     
     return result
 
@@ -154,14 +136,36 @@ def discordance(x, n=10):
 
     return np.mean(X, axis=2)
 
-def fouriersum(x, n=3, step=5):
+def fourier_mean(x, n=3, step=5):
     result = np.empty((x.shape[0], x.shape[1], n), dtype=np.float32)
 
     for i in range(x.shape[0]):
         for j in range(x.shape[1]):
             y = np.fft.fft(x[i,j,:])
             for k in range(n):
-                result[i,j,k] = np.sum(np.abs(y[1+k*step:((k+1)*step+1) or None]))
+                result[i,j,k] = np.mean(np.abs(y[1+k*step:((k+1)*step+1) or None]))
+
+    return result
+
+def fourier_std(x, n=3, step=5):
+    result = np.empty((x.shape[0], x.shape[1], n), dtype=np.float32)
+
+    for i in range(x.shape[0]):
+        for j in range(x.shape[1]):
+            y = np.fft.fft(x[i,j,:])
+            for k in range(n):
+                result[i,j,k] = np.std(np.abs(y[1+k*step:((k+1)*step+1) or None]))
+
+    return result
+
+def fourier_median(x, n=3, step=5):
+    result = np.empty((x.shape[0], x.shape[1], n), dtype=np.float32)
+
+    for i in range(x.shape[0]):
+        for j in range(x.shape[1]):
+            y = np.fft.fft(x[i,j,:])
+            for k in range(n):
+                result[i,j,k] = np.median(np.abs(y[1+k*step:((k+1)*step+1) or None]))
 
     return result
 
@@ -193,8 +197,9 @@ def number_peaks(x, n=10):
     
     return npeaks
 
-def symmetry(x):
-    gm = hdstats.nangeomedian_pcm(x)
+def symmetry(x, gm=None):
+    if gm is None:
+        gm = hdstats.nangeomedian_pcm(x)
     mm = np.nanmean(x, axis=3)
     cd = cosdist(mm[:,:,:,np.newaxis], gm)
     cd = cd.reshape(cd.shape[:2])
