@@ -65,3 +65,7 @@ class TestTimeSeriesFeatures:
     def test_symmetry(self):
         sym = hdstats.symmetry(self.data)
         assert sym.shape == (200, 200)
+
+    def test_area_warp_similarity(self):
+        sim = hdstats.area_warp_similarity(self.ndvi)
+        assert sim.shape == (200, 200)
