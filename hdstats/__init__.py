@@ -14,9 +14,11 @@ from .basic import nancov, gv
 
 from .twosample import test_sample_means
 
-from .ts import (cosdist, eucdist, completion, discordance, 
+from .ts import (
+        cosdist, eucdist, completion, discordance, 
         fourier_mean, fourier_std, fourier_median,
         mean_change, median_change, mean_central_diff, complexity,
-        number_peaks, symmetry, mean_abs_change)
+        number_peaks, symmetry, mean_abs_change, area_warp_similarity
+        )
 
 from .dtw import dtw, local_dtw, dtw_dist
