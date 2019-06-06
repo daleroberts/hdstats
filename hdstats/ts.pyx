@@ -197,10 +197,16 @@ def number_peaks(x, n=10):
     
     return npeaks
 
-def symmetry(x, gm=None):
+def symmetry(x, gm=None, num_threads=None):
+    if num_threads is None:
+        num_threads = get_max_threads()
+
     if gm is None:
-        gm = hdstats.nangeomedian_pcm(x)
+        gm = hdstats.nangeomedian_pcm(x, num_threads=num_threads)
+
     mm = np.nanmean(x, axis=3)
-    cd = cosdist(mm[:,:,:,np.newaxis], gm)
+
+    cd = cosdist(mm[:,:,:,np.newaxis], gm, num_threads=num_threads)
     cd = cd.reshape(cd.shape[:2])
+
     return cd
