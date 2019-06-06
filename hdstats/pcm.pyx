@@ -1,8 +1,8 @@
 #cython: boundscheck=False, wraparound=False, nonecheck=False, cdivision=True, language_level=3, embedsignature=True
 
 import numpy as np
-cimport numpy as np
 
+cimport numpy as np
 cimport openmp
 
 from cython.parallel import prange, parallel, threadid
@@ -10,24 +10,30 @@ from libc.stdlib cimport abort, malloc, free
 from libc.math cimport isnan, sqrt, acos, fabs, exp, log
 
 ctypedef np.float32_t floating
-
 ctypedef np.float32_t float32_t
 ctypedef np.float64_t float64_t
 
-def max_threads():
-    return openmp.omp_get_max_threads()
+MAXITERS = 10000
+EPS = 1e-4
 
-def __gm(floating [:, :, :, :] X, floating [:, :, :] mX, floating [:] w, 
-               size_t maxiters=10000, floating eps=1e-6, num_threads=None):
+
+def get_max_threads():
+    n = openmp.omp_get_max_threads()
+    print('Automatically using %i threads.' % (n,))
+    return n
+
+
+def __gm(floating [:, :, :, :] X, floating [:, :, :] mX, floating [:] w,
+        int maxiters, floating eps, int num_threads):
     """ """
-    cdef size_t m = X.shape[0]
-    cdef size_t q = X.shape[1]
-    cdef size_t p = X.shape[2]
-    cdef size_t n = X.shape[3]
-    
-    cdef size_t i, j, k, l, row, col
-    cdef size_t nzeros, iteration
-    cdef size_t reseed = 0
+    cdef int number_of_threads = num_threads
+    cdef int m = X.shape[0]
+    cdef int q = X.shape[1]
+    cdef int p = X.shape[2]
+    cdef int n = X.shape[3]
+    cdef int i, j, k, row, col
+    cdef int nzeros, iteration
+    cdef int reseed = 0
     cdef float64_t dist, Dinvs, total, r, rinv, tmp, Di, d, value
     cdef float64_t nan = <float64_t> np.nan
     cdef floating *D
@@ -37,14 +43,7 @@ def __gm(floating [:, :, :, :] X, floating [:, :, :] mX, floating [:] w,
     cdef floating *y
     cdef floating *y1
     cdef floating *R
-
-    cdef int number_of_threads
-
-    if num_threads is None:
-        number_of_threads = openmp.omp_get_max_threads()
-    else:
-        number_of_threads = num_threads
-    
+   
     with nogil, parallel(num_threads=number_of_threads):
         Dinv = <floating *> malloc(sizeof(floating) * n)
         y1 = <floating *> malloc(sizeof(floating) * p)
@@ -83,8 +82,6 @@ def __gm(floating [:, :, :, :] X, floating [:, :, :] mX, floating [:] w,
                 value = 0.0
 
                 nzeros = 0
-
-
 
                 if reseed == 1:
 
@@ -191,61 +188,21 @@ def __gm(floating [:, :, :, :] X, floating [:, :, :] mX, floating [:] w,
         free(T)
         free(R)
 
-def gm(np.ndarray[floating, ndim=4] X, weight=None, maxiters=1000, floating eps=1e-4, num_threads=None):
-    """
-    Generate a geometric median pixel composite mosaic by reducing along the last axis.
-
-    Parameters
-    ----------
-    X : array_like of dtype float32 or float64
-        The array has dimensions (m, q, p, n).
-    weight : array_like
-        The optional array of weights of dimension (n,).
-    maxiters : int
-        The maximum number of iterations to use to find the solution.
-    eps : float
-        The tolerance for stopping the algorithm.
-    num_threads : int
-        The number of processing threads to use for the computation.
-
-    Returns
-    -------
-    m : ndarray
-        The array has dimensions (m, q, p)
-    """
-    cdef size_t m = X.shape[0]
-    cdef size_t q = X.shape[1]
-    cdef size_t p = X.shape[2]
-    cdef size_t n = X.shape[3]
-    
-    dtype = np.float32
-        
-    if weight is None:
-        w = np.ones((n,), dtype=dtype)
-    else:
-        w = np.array(weight, dtype=dtype)
-
-    result = np.empty((m, q, p), dtype=dtype)
-    
-    __gm(X, result, w, maxiters=maxiters, eps=eps, num_threads=num_threads)
-    
-    return result
 
 def __wgm(floating [:, :, :, :] X, floating [:, :, :] mX,
-              size_t bi, size_t bj, floating rho, floating delta,
+              int bi, int bj, floating rho, floating delta,
               floating [:] alpha, floating [:] gamma, 
-              floating [:] beta, floating [:] sigma, size_t maxiters=10000, 
-              floating eps=1e-6, num_threads=None):
+              floating [:] beta, floating [:] sigma, int maxiters, 
+              floating eps, num_threads):
     """ """
-    
-    cdef size_t m = X.shape[0]
-    cdef size_t q = X.shape[1]
-    cdef size_t p = X.shape[2]
-    cdef size_t n = X.shape[3]
-    
-    cdef size_t i, j, k, l, row, col
-    cdef size_t nzeros, iteration
-    cdef size_t reseed = 0
+    cdef int number_of_threads = num_threads
+    cdef int m = X.shape[0]
+    cdef int q = X.shape[1]
+    cdef int p = X.shape[2]
+    cdef int n = X.shape[3]
+    cdef int i, j, k, l, row, col
+    cdef int nzeros, iteration
+    cdef int reseed = 0
     cdef float64_t dist, Dinvs, total, r, rinv, tmp, Di, d, value, numer, denom, min_weight, max_weight
     cdef float64_t nan = <float64_t> np.nan
     cdef floating *D
@@ -256,14 +213,7 @@ def __wgm(floating [:, :, :, :] X, floating [:, :, :] mX,
     cdef floating *y1
     cdef floating *R
     cdef floating *w
-    
-    cdef int number_of_threads
 
-    if num_threads is None:
-        number_of_threads = openmp.omp_get_max_threads()
-    else:
-        number_of_threads = num_threads
-    
     with nogil, parallel(num_threads=number_of_threads):
         Dinv = <floating *> malloc(sizeof(floating) * n)
         y1 = <floating *> malloc(sizeof(floating) * p)
@@ -436,8 +386,103 @@ def __wgm(floating [:, :, :, :] X, floating [:, :, :] mX,
         free(T)
         free(R)
 
+
+def __emad(floating [:, :, :, :] X, floating [:, :, :] gm, floating [:,:,:] result, int num_threads):
+    cdef int number_of_threads = num_threads
+    cdef int m = X.shape[0]
+    cdef int q = X.shape[1]
+    cdef int p = X.shape[2]
+    cdef int n = X.shape[3]
+    cdef int j, t, row, col
+    cdef float64_t total, value
+
+    with nogil, parallel(num_threads=number_of_threads):
+        for row in prange(m, schedule='static'):
+            for col in range(q):
+                for t in range(n):
+                    # euclidean distance
+                    total = 0.
+                    for j in range(p):
+                        value = X[row, col, j, t] - gm[row, col, j]
+                        if not isnan(value):
+                            total = total + value*value
+                    result[row, col, t] = sqrt(total)
+            
+
+
+def __smad(floating[:, :, :, :] X, floating[:, :, :] gm, floating[:,:,:] result, int num_threads):
+    """ """
+    cdef int number_of_threads = num_threads
+    cdef int m = X.shape[0]
+    cdef int q = X.shape[1]
+    cdef int p = X.shape[2]
+    cdef int n = X.shape[3]
+    cdef int j, t, row, col
+    cdef float64_t numer, norma, normb, value
+
+    with nogil, parallel(num_threads=number_of_threads):
+        for row in prange(m, schedule='static'):
+            for col in range(q):
+                for t in range(n):
+                    
+                    numer = 0.
+                    norma = 0.
+                    normb = 0.
+                    
+                    for j in range(p):
+                        value = X[row, col, j, t]*gm[row, col, j]
+                        numer = numer + value
+                        norma = norma + X[row, col, j, t]*X[row, col, j, t]
+                        normb = normb + gm[row, col, j]*gm[row, col, j]
+
+                    result[row, col, t] = 1. - numer/(sqrt(norma)*sqrt(normb))
+
+
+def gm(np.ndarray[floating, ndim=4] X, weight=None, maxiters=MAXITERS, floating eps=EPS, num_threads=None):
+    """
+    Generate a geometric median pixel composite mosaic by reducing along the last axis.
+
+    Parameters
+    ----------
+    X : array_like of dtype float32 or float64
+        The array has dimensions (m, q, p, n).
+    weight : array_like
+        The optional array of weights of dimension (n,).
+    maxiters : int
+        The maximum number of iterations to use to find the solution.
+    eps : float
+        The tolerance for stopping the algorithm.
+    num_threads : int
+        The number of processing threads to use for the computation.
+
+    Returns
+    -------
+    m : ndarray
+        The array has dimensions (m, q, p)
+    """
+    cdef int m = X.shape[0]
+    cdef int q = X.shape[1]
+    cdef int p = X.shape[2]
+    cdef int n = X.shape[3]
+
+    if num_threads is None:
+        num_threads = get_max_threads()
+    
+    dtype = np.float32
+        
+    if weight is None:
+        w = np.ones((n,), dtype=dtype)
+    else:
+        w = np.array(weight, dtype=dtype)
+
+    result = np.empty((m, q, p), dtype=dtype)
+    
+    __gm(X, result, w, maxiters, eps, num_threads)
+    
+    return result
+
 def wgm(np.ndarray[floating, ndim=4] X, bi, bj, rho=1.0, delta=1.0, alpha=None, 
-        gamma=None, beta=None, sigma=None, maxiters=1000, floating eps=1e-4,
+        gamma=None, beta=None, sigma=None, maxiters=MAXITERS, floating eps=EPS,
         num_threads=None):
     """
     Generate a weighted geometric median pixel composite mosaic by reducing along 
@@ -488,10 +533,13 @@ def wgm(np.ndarray[floating, ndim=4] X, bi, bj, rho=1.0, delta=1.0, alpha=None,
     m : ndarray
         The array has dimensions (m, q, p)
     """
-    cdef size_t m = X.shape[0]
-    cdef size_t q = X.shape[1]
-    cdef size_t p = X.shape[2]
-    cdef size_t n = X.shape[3]
+    cdef int m = X.shape[0]
+    cdef int q = X.shape[1]
+    cdef int p = X.shape[2]
+    cdef int n = X.shape[3]
+    
+    if num_threads is None:
+        num_threads = get_max_threads()
     
     if X.dtype is np.float32:
         dtype = np.float32
@@ -520,42 +568,11 @@ def wgm(np.ndarray[floating, ndim=4] X, bi, bj, rho=1.0, delta=1.0, alpha=None,
     else:
         sigma = np.ascontiguousarray(sigma, dtype=dtype)
         
-    __wgm(X, result, bi, bj, rho, delta, alpha, gamma, beta, sigma, maxiters=maxiters, eps=eps, num_threads=num_threads)
+    __wgm(X, result, bi, bj, rho, delta, alpha, gamma, beta, sigma, maxiters, eps, num_threads)
     
     return result
 
-def __emad(floating [:, :, :, :] X, floating [:, :, :] gm, floating [:,:,:] result, num_threads=None):
-    cdef size_t m = X.shape[0]
-    cdef size_t q = X.shape[1]
-    cdef size_t p = X.shape[2]
-    cdef size_t n = X.shape[3]
-    
-    cdef float64_t total, value
-    cdef size_t j, t, row, col
-
-    cdef int number_of_threads
-
-    if num_threads is None:
-        number_of_threads = openmp.omp_get_max_threads()
-    else:
-        number_of_threads = num_threads
-    
-    with nogil, parallel(num_threads=number_of_threads):
-        for row in prange(m, schedule='static'):
-            for col in range(q):
-                for t in range(n):
-
-                    # euclidean distance
-                    total = 0.
-                    for j in range(p):
-                        value = X[row, col, j, t] - gm[row, col, j]
-                        if not isnan(value):
-                            total = total + value*value
-
-                    result[row, col, t] = sqrt(total)
-            
-
-cpdef emad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_threads=None):
+def emad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_threads=None):
     """
     Generate a Euclidean geometric median absolute deviation pixel 
     composite mosaic by reducing along the last axis.
@@ -574,57 +591,21 @@ cpdef emad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_
     m : ndarray
         The array has dimensions (m, q, p)
     """
-    cdef size_t m = X.shape[0]
-    cdef size_t q = X.shape[1]
-    cdef size_t p = X.shape[2]
-    cdef size_t n = X.shape[3]
-    
-    if X.dtype is np.float32:
-        dtype = np.float32
-    else:
-        dtype = np.float64
+    cdef int m = X.shape[0]
+    cdef int q = X.shape[1]
+    cdef int p = X.shape[2]
+    cdef int n = X.shape[3]
+
+    if num_threads is None:
+        num_threads = get_max_threads()
+     
+    dtype = np.float32
 
     result = np.empty((m, q, n), dtype=dtype)
     
-    __emad(X, gm, result, num_threads=num_threads)
+    __emad(X, gm, result, num_threads)
     
     return np.median(result, axis=2)
-
-
-def __smad(floating[:, :, :, :] X, floating[:, :, :] gm, floating[:,:,:] result, num_threads=None):
-    """ """
-    cdef size_t m = X.shape[0]
-    cdef size_t q = X.shape[1]
-    cdef size_t p = X.shape[2]
-    cdef size_t n = X.shape[3]
-    
-    cdef float64_t numer, norma, normb, value
-    cdef size_t j, t, row, col
-
-    cdef int number_of_threads
-
-    if num_threads is None:
-        number_of_threads = openmp.omp_get_max_threads()
-    else:
-        number_of_threads = num_threads
-    
-    with nogil, parallel(num_threads=number_of_threads):
-        for row in prange(m, schedule='static'):
-            for col in range(q):
-                for t in range(n):
-                    
-                    numer = 0.
-                    norma = 0.
-                    normb = 0.
-                    
-                    for j in range(p):
-                        value = X[row, col, j, t]*gm[row, col, j]
-                        numer = numer + value
-                        norma = norma + X[row, col, j, t]*X[row, col, j, t]
-                        normb = normb + gm[row, col, j]*gm[row, col, j]
-
-                    result[row, col, t] = 1. - numer/(sqrt(norma)*sqrt(normb))
-                    
 
 def smad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_threads=None):
     """
@@ -648,18 +629,18 @@ def smad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_th
     m : ndarray
         The array has dimensions (m, q, p)
     """
-    cdef size_t m = X.shape[0]
-    cdef size_t q = X.shape[1]
-    cdef size_t p = X.shape[2]
-    cdef size_t n = X.shape[3]
+    cdef int m = X.shape[0]
+    cdef int q = X.shape[1]
+    cdef int p = X.shape[2]
+    cdef int n = X.shape[3]
     
-    if X.dtype is np.float32:
-        dtype = np.float32
-    else:
-        dtype = np.float64
+    if num_threads is None:
+        num_threads = get_max_threads()
+
+    dtype = np.float32
 
     result = np.empty((m, q, n), dtype=dtype)
     
-    __smad(X, gm, result, num_threads=num_threads)
+    __smad(X, gm, result, num_threads)
     
     return np.nanmedian(result, axis=2)
