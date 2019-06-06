@@ -29,8 +29,16 @@ class TestTimeSeriesFeatures:
         dc = hdstats.discordance(self.ndvi)
         assert dc.shape == (200, 200)
 
-    def test_fouriersum(self):
-        fs = hdstats.fouriersum(self.ndvi)
+    def test_fourier_mean(self):
+        fs = hdstats.fourier_mean(self.ndvi)
+        assert fs.shape == (200, 200, 3)
+
+    def test_fourier_std(self):
+        fs = hdstats.fourier_std(self.ndvi)
+        assert fs.shape == (200, 200, 3)
+
+    def test_fourier_median(self):
+        fs = hdstats.fourier_median(self.ndvi)
         assert fs.shape == (200, 200, 3)
 
     def test_mean_change(self):
