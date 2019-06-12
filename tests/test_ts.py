@@ -6,7 +6,7 @@ import pytest
 
 class TestTimeSeriesFeatures:
 
-    data = joblib.load('tests/landchar-small.pkl').astype(np.float32)
+    data = joblib.load('data/landchar-small.pkl').astype(np.float32)
     ndvi = (data[:,:,4,:]-data[:,:,3,:])/(data[:,:,4,:]+data[:,:,3,:])
     gm = hdstats.nangeomedian_pcm(data)
 

@@ -25,7 +25,7 @@ class TestPixelCompositeMosaic:
 
 class TestMedianAbsoluteDeviation:
 
-    data = joblib.load('tests/landchar-small.pkl')
+    data = joblib.load('data/landchar-small.pkl')
     gm = hdstats.nangeomedian_pcm(data)
 
     def test_emad(self):
