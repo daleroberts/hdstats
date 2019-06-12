@@ -1,0 +1,22 @@
+{
+    "files.exclude": {
+        "**/geomedian.c": true,
+        "**/truncated.c": true,
+        "**/wishart.c": true,
+        "**/ts.c": true,
+        "**/dtw.c": true,
+        "**/pcm.c": true,
+        "**/__pycache__": true,
+        "**/*cache*": true,
+        "**/*eggs*": true,
+        "**/*cpython-*": true
+    },
+    "python.testing.pyTestArgs": [],
+    "python.testing.unittestEnabled": false,
+    "python.testing.nosetestsEnabled": false,
+    "python.testing.pyTestEnabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.mypyEnabled": true,
+    "python.linting.enabled": true,
+    "python.formatting.provider": "black"
+}
