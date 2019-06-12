@@ -6,7 +6,7 @@ from scipy.stats import wishart as Wishart
 from scipy.stats import chi2 as ChiSquared
 from scipy.stats import multivariate_normal as MultivariateNormal
 
-#class Wishart(wishart_gen):
+# class Wishart(wishart_gen):
 #
 #    def __init__(self, df=None, scale=None, seed=None):
 #        super().__init__(df, scale, seed)
@@ -20,13 +20,14 @@ class MarchenkoPastur_gen(rv_continuous):
     """ Construct a Marchenko-Pastur distribution. """
 
     def _pdf(self, x, y, sigma):
-        err = np.seterr(all='ignore')
+        err = np.seterr(all="ignore")
         a = np.power(sigma * (1 - np.sqrt(y)), 2)
         b = np.power(sigma * (1 + np.sqrt(y)), 2)
         result = np.where(
             np.logical_and(a < x, x < b),
             np.sqrt((b - x) * (x - a)) / (2 * np.pi * sigma * sigma * x * y),
-            np.zeros_like(x))
+            np.zeros_like(x),
+        )
         np.seterr(**err)
         return result
 
@@ -80,6 +81,7 @@ class MarchenkoPastur_gen(rv_continuous):
             return result
 
         return np.zeros_like(x)
+
 
 MarchenkoPastur = MarchenkoPastur_gen(name="mp", longname="Marchenko-Pastur")
 
