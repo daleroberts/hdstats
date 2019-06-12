@@ -433,7 +433,33 @@ def __smad(floating[:, :, :, :] X, floating[:, :, :] gm, floating[:,:,:] result,
                     result[row, col, t] = 1. - numer/(sqrt(norma)*sqrt(normb))
 
 
-def gm(np.ndarray[floating, ndim=4] X, weight=None, maxiters=MAXITERS, floating eps=EPS, num_threads=None):
+def __bcmad(floating[:, :, :, :] X, floating[:, :, :] gm, floating[:,:,:] result, int num_threads):
+    """ """
+    cdef int number_of_threads = num_threads
+    cdef int m = X.shape[0]
+    cdef int q = X.shape[1]
+    cdef int p = X.shape[2]
+    cdef int n = X.shape[3]
+    cdef int j, t, row, col
+    cdef float64_t numer, denom, value
+
+    with nogil, parallel(num_threads=number_of_threads):
+        for row in prange(m, schedule='static'):
+            for col in range(q):
+                for t in range(n):
+                    
+                    numer = 0.
+                    denom = 0.
+
+                    for j in range(p):
+                        numer = numer + fabs(X[row, col, j, t] - gm[row, col, j])
+                        denom = denom + fabs(X[row, col, j, t] + gm[row, col, j])
+
+                    result[row, col, t] = numer / denom
+                     
+
+
+def gm(np.ndarray[floating, ndim=4] X, weight=None, maxiters=MAXITERS, floating eps=EPS, num_threads=None, nocheck=False):
     """
     Generate a geometric median pixel composite mosaic by reducing along the last axis.
 
@@ -449,7 +475,8 @@ def gm(np.ndarray[floating, ndim=4] X, weight=None, maxiters=MAXITERS, floating 
         The tolerance for stopping the algorithm.
     num_threads : int
         The number of processing threads to use for the computation.
-
+    nocheck : bool
+        Do not perform data checks.
     Returns
     -------
     m : ndarray
@@ -471,8 +498,14 @@ def gm(np.ndarray[floating, ndim=4] X, weight=None, maxiters=MAXITERS, floating 
         w = np.array(weight, dtype=dtype)
 
     result = np.empty((m, q, p), dtype=dtype)
+
+    if not nocheck:
+        bad = np.isnan(np.sum(X, axis=(2,3)))
     
     __gm(X, result, w, maxiters, eps, num_threads)
+
+    if not nocheck:
+        result[bad] = np.nan
     
     return result
 
@@ -567,7 +600,7 @@ def wgm(np.ndarray[floating, ndim=4] X, bi, bj, rho=1.0, delta=1.0, alpha=None,
     
     return result
 
-def emad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_threads=None):
+def emad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_threads=None, nocheck=False):
     """
     Generate a Euclidean geometric median absolute deviation pixel 
     composite mosaic by reducing along the last axis.
@@ -594,15 +627,27 @@ def emad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_th
     if num_threads is None:
         num_threads = get_max_threads()
      
+    old = np.seterr(all='ignore') 
+
     dtype = np.float32
+
+    if not nocheck:
+        bad = np.isnan(np.sum(X, axis=(2,3)))
 
     result = np.empty((m, q, n), dtype=dtype)
     
     __emad(X, gm, result, num_threads)
-    
-    return np.median(result, axis=2)
 
-def smad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_threads=None):
+    np.seterr(**old)
+    
+    if not nocheck:
+        result[bad] = np.nan
+        return np.nanmedian(result, axis=2)
+    else:
+        return np.median(result, axis=2)
+
+
+def smad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_threads=None, nocheck=False):
     """
     Generate a spectral geometric median absolute deviation pixel 
     composite mosaic by reducing along the last axis.
@@ -632,10 +677,71 @@ def smad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_th
     if num_threads is None:
         num_threads = get_max_threads()
 
+    old = np.seterr(all='ignore') 
+
     dtype = np.float32
 
     result = np.empty((m, q, n), dtype=dtype)
-    
+
+    if not nocheck:
+        bad = np.isnan(np.sum(X, axis=(2,3)))
+
     __smad(X, gm, result, num_threads)
+
+    np.seterr(**old)
+
+    if not nocheck:
+        result[bad] = np.nan
+        return np.nanmedian(result, axis=2)
+    else:
+        return np.median(result, axis=2)
+
+
+def bcmad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_threads=None, nocheck=False):
+    """
+    Generate a bray-curtis geometric median absolute deviation pixel 
+    composite mosaic by reducing along the last axis.
+
+    Distance is calculated using spectral distance, aka. cosine
+    distance. The distance is invariant under parallel shifts.
+
+    Parameters
+    ----------
+    X : array_like of dtype float32 or float64
+        The array has dimensions (m, q, p, n).
+    gm : array_like of dtype float32 or float64
+	The geometric median of the stack of dimension (m, q, p)
+    num_threads : int
+        The number of processing threads to use for the computation.
+
+    Returns
+    -------
+    m : ndarray
+        The array has dimensions (m, q, p)
+    """
+    cdef int m = X.shape[0]
+    cdef int q = X.shape[1]
+    cdef int p = X.shape[2]
+    cdef int n = X.shape[3]
     
-    return np.nanmedian(result, axis=2)
+    if num_threads is None:
+        num_threads = get_max_threads()
+
+    old = np.seterr(all='ignore') 
+
+    dtype = np.float32
+
+    if not nocheck:
+        bad = np.isnan(np.sum(X, axis=(2,3)))
+
+    result = np.empty((m, q, n), dtype=dtype)
+    
+    __bcmad(X, gm, result, num_threads)
+
+    np.seterr(**old) 
+    
+    if not nocheck:
+        result[bad] = np.nan
+        return np.nanmedian(result, axis=2)
+    else:
+        return np.median(result, axis=2)

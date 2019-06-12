@@ -13,6 +13,7 @@ from .pcm import (
     wgm as nanwgeomedian_pcm,
     emad as emad_pcm,
     smad as smad_pcm,
+    bcmad as bcmad_pcm,
 )
 
 from .basic import nancov, gv
