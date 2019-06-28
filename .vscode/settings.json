@@ -1,5 +1,6 @@
 {
     "files.exclude": {
+        "build": true,
         "**/geomedian.c": true,
         "**/truncated.c": true,
         "**/wishart.c": true,
@@ -18,5 +19,6 @@
     "python.linting.pylintEnabled": false,
     "python.linting.mypyEnabled": true,
     "python.linting.enabled": true,
-    "python.formatting.provider": "black"
+    "python.formatting.provider": "black",
+    "python.dataScience.jupyterServerURI": "local"
 }
