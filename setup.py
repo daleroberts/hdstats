@@ -44,7 +44,7 @@ setup(
     name="hdstats",
     packages=find_packages(),
     setup_requires=["pytest-runner", "Cython>=0.23"],
-    install_requires=["numpy", "Cython>=0.23"],
+    install_requires=["numpy", "Cython>=0.23", "astropy"],
     tests_require=["pytest"],
     version="0.1",
     description="High-dimensional statistics.",
