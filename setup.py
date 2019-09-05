@@ -6,15 +6,10 @@ import sys
 from setuptools import setup, find_packages, Extension
 
 try:
-    from Cython.Distutils import build_ext
-except ImportError:
-    sys.exit("Cython not found. Cython is needed to build the extension modules.")
-
-try:
     import numpy as np
     npinclude = np.get_include()
 except ImportError:
-    sys.exit("Numpy not found. Numpy is needed to build the extension modules.")
+    npinclude = ""
 
 # macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
 macros = []
@@ -63,7 +58,6 @@ setup(
     author="Dale Roberts",
     author_email="dale.o.roberts@gmail.com",
     license="Apache 2.0",
-    cmdclass={'build_ext': build_ext},
     zip_safe=False,
     ext_modules=extensions
 )
