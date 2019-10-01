@@ -2,19 +2,17 @@
 hdstats: High-dimensional statistics.
 """
 
-import numpy as np
 import sys
-
 from setuptools import setup, find_packages, Extension
-from setuptools import setup, Extension
 
-from Cython.Distutils import build_ext
+try:
+    import numpy as np
+    npinclude = np.get_include()
+except ImportError:
+    npinclude = ""
 
-#macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
+# macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
 macros = []
-
-npinclude = np.get_include()
-rdinclude = np.random.__path__[0] + '/'
 
 if sys.platform == 'darwin':
     # Needs openmp lib installed: brew install libomp
@@ -40,18 +38,26 @@ extensions = [
         Extension('hdstats.wishart', ['hdstats/wishart.pyx', 'hdstats/randomkit.c'], **build_cfg),
 ]
 
+tests_require = [
+    "pytest",
+    "joblib",
+]
+
 setup(
     name="hdstats",
-    packages=find_packages(),
-    setup_requires=["pytest-runner", "Cython>=0.23"],
-    install_requires=["numpy", "Cython>=0.23"],
-    tests_require=["pytest"],
+    packages=find_packages(".", exclude=['tests']),
+    setup_requires=["pytest-runner", "Cython>=0.23", "numpy"],
+    install_requires=["numpy", "scipy", "astropy"],
+    tests_require=tests_require,
+    extras_require={
+        'test': tests_require,
+    },
     version="0.1",
     description="High-dimensional statistics.",
     url="http://github.com/daleroberts/hdstats",
     author="Dale Roberts",
     author_email="dale.o.roberts@gmail.com",
     license="Apache 2.0",
-    cmdclass = {'build_ext': build_ext},
-    ext_modules = extensions
+    zip_safe=False,
+    ext_modules=extensions
 )
