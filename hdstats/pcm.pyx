@@ -203,10 +203,10 @@ def __gm(floating [:, :, :, :] X, floating [:, :, :] mX, floating [:] w,
 
 
 def __wgm(floating [:, :, :, :] X, floating [:, :, :] mX,
-              int bi, int bj, floating rho, floating delta,
-              floating [:] alpha, floating [:] gamma,
+              int bi, int bj, float64_t rho, float64_t delta,
+              float64_t xi, floating [:] alpha, floating [:] gamma,
               floating [:] beta, floating [:] sigma, int maxiters,
-              floating eps, num_threads):
+              float64_t eps, int num_threads):
     """ """
     cdef int number_of_threads = num_threads
     cdef int m = X.shape[0]
@@ -271,7 +271,7 @@ def __wgm(floating [:, :, :, :] X, floating [:, :, :] mX,
 
                 # calculate weights
                 for i in range(n):
-                    value = (X[row, col, bi, i] - X[row, col, bj, i])/(X[row, col, bi, i] + X[row, col, bj, i])
+                    value = (X[row, col, bi, i] - X[row, col, bj, i])/(X[row, col, bi, i] + X[row, col, bj, i] + xi)
                     numer = rho
                     denom = delta
                     for j in range(p):
@@ -527,9 +527,10 @@ def gm(np.ndarray[floating, ndim=4] X, weight=None, maxiters=MAXITERS, floating 
 
     return result
 
-def wgm(np.ndarray[floating, ndim=4] X, bi, bj, rho=1.0, delta=1.0, alpha=None,
-        gamma=None, beta=None, sigma=None, maxiters=MAXITERS, floating eps=EPS,
-        num_threads=None):
+def wgm(np.ndarray[floating, ndim=4] X, int bi, int bj, float64_t rho=1.0, 
+        float64_t delta=1.0, float64_t xi=0.0, alpha=None, gamma=None, beta=None, sigma=None, 
+        int maxiters=MAXITERS, float64_t eps=EPS,
+        num_threads=None, nocheck=False):
     """
     Generate a weighted geometric median pixel composite mosaic by reducing along
     the last axis. Weighting is performed on each multivariate time series based
@@ -539,7 +540,7 @@ def wgm(np.ndarray[floating, ndim=4] X, bi, bj, rho=1.0, delta=1.0, alpha=None,
     Generate simple weight features based on the spectral information in the
     pixel $\mathbb{x} = (x_1, \ldots, x_p)^T$. These features have the form
     $$
-        f(\mathbb{x}) = \\frac{x_i-x_j}{x_i+x_j}\left(\\frac{\\alpha_1(x_1-\gamma_1)+
+        f(\mathbb{x}) = \\frac{x_i-x_j}{x_i+x_j+\\xi}\left(\\frac{\\alpha_1(x_1-\gamma_1)+
         \cdots + \\alpha_p(x_p - \gamma_p) + \\rho}{\\beta_1(x_1-\sigma_1)+
         \cdots + \\beta_p (x_p - \sigma_p) + \delta}\\right)
     $$
@@ -587,10 +588,12 @@ def wgm(np.ndarray[floating, ndim=4] X, bi, bj, rho=1.0, delta=1.0, alpha=None,
     if num_threads is None:
         num_threads = get_max_threads()
 
-    if X.dtype is np.float32:
-        dtype = np.float32
-    else:
-        dtype = np.float64
+    # if X.dtype is np.float32:
+    #     dtype = np.float32
+    # else:
+    #     dtype = np.float64
+
+    dtype = np.float32
 
     result = np.empty((m, q, p), dtype=dtype)
 
@@ -614,7 +617,13 @@ def wgm(np.ndarray[floating, ndim=4] X, bi, bj, rho=1.0, delta=1.0, alpha=None,
     else:
         sigma = np.ascontiguousarray(sigma, dtype=dtype)
 
-    __wgm(X, result, bi, bj, rho, delta, alpha, gamma, beta, sigma, maxiters, eps, num_threads)
+    if not nocheck:
+        bad = np.isnan(np.sum(X, axis=(2,3)))
+
+    __wgm(X, result, bi, bj, rho, delta, xi, alpha, gamma, beta, sigma, maxiters, eps, num_threads)
+
+    if not nocheck:
+        result[bad] = np.nan
 
     return result
 
