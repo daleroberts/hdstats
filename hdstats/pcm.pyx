@@ -475,7 +475,17 @@ def __bcmad(const floating[:, :, :, :] X, const floating[:, :, :] gm, floating[:
 
                     result[row, col, t] = numer / denom
 
+def __bad_mask(np.ndarray[floating, ndim=4] X):
+    """ Input is bad if all observation for a given X,Y location are nan.
+        Individual observation is nan if any band value is nan.
 
+        Returns
+        ========
+        2-d boolean array with the shape equal to X.shape[:2]
+        True  -- all observations were nan for this column
+        False -- at least one valid observation for this column
+    """
+    return np.isnan(X.sum(axis=2)).all(axis=2)
 
 def gm(np.ndarray[floating, ndim=4] X, weight=None, maxiters=MAXITERS, floating eps=EPS, num_threads=None, nocheck=False):
     """
@@ -518,7 +528,7 @@ def gm(np.ndarray[floating, ndim=4] X, weight=None, maxiters=MAXITERS, floating 
     result = np.empty((m, q, p), dtype=dtype)
 
     if not nocheck:
-        bad = np.isnan(np.sum(X, axis=(2,3)))
+        bad = __bad_mask(X)
 
     __gm(X, result, w, maxiters, eps, num_threads)
 
@@ -618,7 +628,7 @@ def wgm(np.ndarray[floating, ndim=4] X, int bi, int bj, float64_t rho=1.0,
         sigma = np.ascontiguousarray(sigma, dtype=dtype)
 
     if not nocheck:
-        bad = np.isnan(np.sum(X, axis=(2,3)))
+        bad = __bad_mask(X)
 
     __wgm(X, result, bi, bj, rho, delta, xi, alpha, gamma, beta, sigma, maxiters, eps, num_threads)
 
@@ -659,7 +669,7 @@ def emad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_th
     dtype = np.float32
 
     if not nocheck:
-        bad = np.isnan(np.sum(X, axis=(2,3)))
+        bad = __bad_mask(X)
 
     result = np.empty((m, q, n), dtype=dtype)
 
@@ -711,7 +721,7 @@ def smad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_th
     result = np.empty((m, q, n), dtype=dtype)
 
     if not nocheck:
-        bad = np.isnan(np.sum(X, axis=(2,3)))
+        bad = __bad_mask(X)
 
     __smad(X, gm, result, num_threads)
 
@@ -759,7 +769,7 @@ def bcmad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_t
     dtype = np.float32
 
     if not nocheck:
-        bad = np.isnan(np.sum(X, axis=(2,3)))
+        bad = __bad_mask(X)
 
     result = np.empty((m, q, n), dtype=dtype)
 
