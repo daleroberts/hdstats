@@ -19,8 +19,8 @@ MAXITERS = 10000
 EPS = 1e-4
 
 
-def __gm(floating [:, :, :, :] X, floating [:, :, :] mX, floating [:] w,
-        int maxiters, floating eps, int num_threads):
+def __gm(const floating [:, :, :, :] X, floating [:, :, :] mX, const floating [:] w,
+        int maxiters, const floating eps, int num_threads):
     """ """
     cdef int number_of_threads = num_threads
     cdef int m = X.shape[0]
@@ -202,10 +202,10 @@ def __gm(floating [:, :, :, :] X, floating [:, :, :] mX, floating [:] w,
         free(R)
 
 
-def __wgm(floating [:, :, :, :] X, floating [:, :, :] mX,
+def __wgm(const floating [:, :, :, :] X, floating [:, :, :] mX,
               int bi, int bj, float64_t rho, float64_t delta,
-              float64_t xi, floating [:] alpha, floating [:] gamma,
-              floating [:] beta, floating [:] sigma, int maxiters,
+              float64_t xi, const floating [:] alpha, const floating [:] gamma,
+              const floating [:] beta, const floating [:] sigma, int maxiters,
               float64_t eps, int num_threads):
     """ """
     cdef int number_of_threads = num_threads
@@ -400,7 +400,7 @@ def __wgm(floating [:, :, :, :] X, floating [:, :, :] mX,
         free(R)
 
 
-def __emad(floating [:, :, :, :] X, floating [:, :, :] gm, floating [:,:,:] result, int num_threads):
+def __emad(const floating [:, :, :, :] X, const floating [:, :, :] gm, floating [:,:,:] result, int num_threads):
     cdef int number_of_threads = num_threads
     cdef int m = X.shape[0]
     cdef int q = X.shape[1]
@@ -423,7 +423,7 @@ def __emad(floating [:, :, :, :] X, floating [:, :, :] gm, floating [:,:,:] resu
 
 
 
-def __smad(floating[:, :, :, :] X, floating[:, :, :] gm, floating[:,:,:] result, int num_threads):
+def __smad(const floating[:, :, :, :] X, const floating[:, :, :] gm, floating[:,:,:] result, int num_threads):
     """ """
     cdef int number_of_threads = num_threads
     cdef int m = X.shape[0]
@@ -451,7 +451,7 @@ def __smad(floating[:, :, :, :] X, floating[:, :, :] gm, floating[:,:,:] result,
                     result[row, col, t] = 1. - numer/(sqrt(norma)*sqrt(normb))
 
 
-def __bcmad(floating[:, :, :, :] X, floating[:, :, :] gm, floating[:,:,:] result, int num_threads):
+def __bcmad(const floating[:, :, :, :] X, const floating[:, :, :] gm, floating[:,:,:] result, int num_threads):
     """ """
     cdef int number_of_threads = num_threads
     cdef int m = X.shape[0]
