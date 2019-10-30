@@ -7,7 +7,7 @@ import pytest
 
 class TestPixelCompositeMosaic:
 
-    data = joblib.load('tests/landchar-small.pkl')
+    data = joblib.load('data/landchar-small.pkl')
 
     def test_data(self):
         assert self.data.shape == (200, 200, 8, 18)
