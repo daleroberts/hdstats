@@ -19,8 +19,8 @@ MAXITERS = 10000
 EPS = 1e-4
 
 
-def __gm(floating [:, :, :, :] X, floating [:, :, :] mX, floating [:] w,
-        int maxiters, floating eps, int num_threads):
+def __gm(const floating [:, :, :, :] X, floating [:, :, :] mX, const floating [:] w,
+        int maxiters, const floating eps, int num_threads):
     """ """
     cdef int number_of_threads = num_threads
     cdef int m = X.shape[0]
@@ -202,10 +202,10 @@ def __gm(floating [:, :, :, :] X, floating [:, :, :] mX, floating [:] w,
         free(R)
 
 
-def __wgm(floating [:, :, :, :] X, floating [:, :, :] mX,
+def __wgm(const floating [:, :, :, :] X, floating [:, :, :] mX,
               int bi, int bj, float64_t rho, float64_t delta,
-              float64_t xi, floating [:] alpha, floating [:] gamma,
-              floating [:] beta, floating [:] sigma, int maxiters,
+              float64_t xi, const floating [:] alpha, const floating [:] gamma,
+              const floating [:] beta, const floating [:] sigma, int maxiters,
               float64_t eps, int num_threads):
     """ """
     cdef int number_of_threads = num_threads
@@ -400,7 +400,7 @@ def __wgm(floating [:, :, :, :] X, floating [:, :, :] mX,
         free(R)
 
 
-def __emad(floating [:, :, :, :] X, floating [:, :, :] gm, floating [:,:,:] result, int num_threads):
+def __emad(const floating [:, :, :, :] X, const floating [:, :, :] gm, floating [:,:,:] result, int num_threads):
     cdef int number_of_threads = num_threads
     cdef int m = X.shape[0]
     cdef int q = X.shape[1]
@@ -423,7 +423,7 @@ def __emad(floating [:, :, :, :] X, floating [:, :, :] gm, floating [:,:,:] resu
 
 
 
-def __smad(floating[:, :, :, :] X, floating[:, :, :] gm, floating[:,:,:] result, int num_threads):
+def __smad(const floating[:, :, :, :] X, const floating[:, :, :] gm, floating[:,:,:] result, int num_threads):
     """ """
     cdef int number_of_threads = num_threads
     cdef int m = X.shape[0]
@@ -451,7 +451,7 @@ def __smad(floating[:, :, :, :] X, floating[:, :, :] gm, floating[:,:,:] result,
                     result[row, col, t] = 1. - numer/(sqrt(norma)*sqrt(normb))
 
 
-def __bcmad(floating[:, :, :, :] X, floating[:, :, :] gm, floating[:,:,:] result, int num_threads):
+def __bcmad(const floating[:, :, :, :] X, const floating[:, :, :] gm, floating[:,:,:] result, int num_threads):
     """ """
     cdef int number_of_threads = num_threads
     cdef int m = X.shape[0]
@@ -475,7 +475,17 @@ def __bcmad(floating[:, :, :, :] X, floating[:, :, :] gm, floating[:,:,:] result
 
                     result[row, col, t] = numer / denom
 
+def __bad_mask(np.ndarray[floating, ndim=4] X):
+    """ Input is bad if all observation for a given X,Y location are nan.
+        Individual observation is nan if any band value is nan.
 
+        Returns
+        ========
+        2-d boolean array with the shape equal to X.shape[:2]
+        True  -- all observations were nan for this column
+        False -- at least one valid observation for this column
+    """
+    return np.isnan(X.sum(axis=2)).all(axis=2)
 
 def gm(np.ndarray[floating, ndim=4] X, weight=None, maxiters=MAXITERS, floating eps=EPS, num_threads=None, nocheck=False):
     """
@@ -518,7 +528,7 @@ def gm(np.ndarray[floating, ndim=4] X, weight=None, maxiters=MAXITERS, floating 
     result = np.empty((m, q, p), dtype=dtype)
 
     if not nocheck:
-        bad = np.isnan(np.sum(X, axis=(2,3)))
+        bad = __bad_mask(X)
 
     __gm(X, result, w, maxiters, eps, num_threads)
 
@@ -618,7 +628,7 @@ def wgm(np.ndarray[floating, ndim=4] X, int bi, int bj, float64_t rho=1.0,
         sigma = np.ascontiguousarray(sigma, dtype=dtype)
 
     if not nocheck:
-        bad = np.isnan(np.sum(X, axis=(2,3)))
+        bad = __bad_mask(X)
 
     __wgm(X, result, bi, bj, rho, delta, xi, alpha, gamma, beta, sigma, maxiters, eps, num_threads)
 
@@ -659,7 +669,7 @@ def emad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_th
     dtype = np.float32
 
     if not nocheck:
-        bad = np.isnan(np.sum(X, axis=(2,3)))
+        bad = __bad_mask(X)
 
     result = np.empty((m, q, n), dtype=dtype)
 
@@ -711,7 +721,7 @@ def smad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_th
     result = np.empty((m, q, n), dtype=dtype)
 
     if not nocheck:
-        bad = np.isnan(np.sum(X, axis=(2,3)))
+        bad = __bad_mask(X)
 
     __smad(X, gm, result, num_threads)
 
@@ -759,7 +769,7 @@ def bcmad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_t
     dtype = np.float32
 
     if not nocheck:
-        bad = np.isnan(np.sum(X, axis=(2,3)))
+        bad = __bad_mask(X)
 
     result = np.empty((m, q, n), dtype=dtype)
 
