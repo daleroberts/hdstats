@@ -7,7 +7,7 @@ import pytest
 
 class TestPixelCompositeMosaic:
 
-    data = joblib.load('tests/landchar-small.pkl')
+    data = joblib.load('data/landchar-small.pkl')
 
     def test_data(self):
         assert self.data.shape == (200, 200, 8, 18)
@@ -15,6 +15,12 @@ class TestPixelCompositeMosaic:
 
     def test_nangeomedian(self):
         gm = hdstats.nangeomedian_pcm(self.data)
+        assert gm.shape == (200, 200, 8)
+
+    def test_nangeomedian_ro(self):
+        data = self.data.copy()
+        data.setflags(write=False)
+        gm = hdstats.nangeomedian_pcm(data)
         assert gm.shape == (200, 200, 8)
 
     def test_nangeomedian_baddata(self):
