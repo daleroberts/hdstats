@@ -46,6 +46,8 @@ tests_require = [
 setup(
     name="hdstats",
     packages=find_packages(".", exclude=['tests']),
+    include_package_data=True,
+    package_data={'': ['hdstats/*.pyx', 'hdstats/*.pyx', 'hdstats/*.h', 'hdstats/*.c']},
     setup_requires=["pytest-runner", "Cython>=0.23", "numpy"],
     install_requires=["numpy", "scipy", "astropy"],
     tests_require=tests_require,
