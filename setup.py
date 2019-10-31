@@ -34,8 +34,10 @@ extensions = [
         Extension('hdstats.pcm', ['hdstats/pcm.pyx'], **build_cfg),
         Extension('hdstats.ts', ['hdstats/ts.pyx'], **build_cfg),
         Extension('hdstats.dtw', ['hdstats/dtw.pyx'], **build_cfg),
-        Extension('hdstats.truncated', ['hdstats/truncated.pyx', 'hdstats/randomkit.c'], **build_cfg),
-        Extension('hdstats.wishart', ['hdstats/wishart.pyx', 'hdstats/randomkit.c'], **build_cfg),
+        Extension('hdstats.truncated', ['hdstats/truncated.pyx', 'hdstats/randomkit.c'], 
+                    depends=['hdstats/randomkit.h'], **build_cfg),
+        Extension('hdstats.wishart', ['hdstats/wishart.pyx', 'hdstats/randomkit.c'], 
+                    depends=['hdstats/randomkit.h'], **build_cfg),
 ]
 
 tests_require = [
