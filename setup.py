@@ -56,7 +56,7 @@ setup(
     extras_require={
         'test': tests_require,
     },
-    version="0.1.1",
+    version="0.1.2",
     description="High-dimensional statistics.",
     url="http://github.com/daleroberts/hdstats",
     author="Dale Roberts",
