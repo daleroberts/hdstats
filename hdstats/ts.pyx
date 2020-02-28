@@ -141,7 +141,7 @@ def fast_completion(arr):
 
 
 def smooth(arr, k=3):
-    return signal.wiener(ndvi, (1, 1, k))
+    return wiener(arr, (1, 1, k))
 
 
 def discordance(x, n=10):
