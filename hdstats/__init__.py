@@ -36,6 +36,8 @@ from .ts import (
     symmetry,
     mean_abs_change,
     area_warp_similarity,
+    fast_completion,
+    smooth
 )
 
 from .dtw import dtw, local_dtw, dtw_dist
