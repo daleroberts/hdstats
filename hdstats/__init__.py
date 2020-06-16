@@ -36,6 +36,9 @@ from .ts import (
     symmetry,
     mean_abs_change,
     area_warp_similarity,
+)
+
+from .tsslow import (
     fast_completion,
     smooth
 )
