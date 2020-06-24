@@ -7,9 +7,9 @@ from setuptools import setup, find_packages, Extension
 
 try:
     import numpy as np
-    npinclude = np.get_include()
+    include_dirs = [np.get_include()]
 except ImportError:
-    npinclude = ""
+    include_dirs = []
 
 # macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
 macros = []
@@ -23,11 +23,12 @@ else:
     ld_flags = ['-fopenmp']
 
 build_cfg = dict(
-    include_dirs=[npinclude],
+    include_dirs=include_dirs,
     extra_compile_args=cc_flags,
     extra_link_args=ld_flags,
     define_macros=macros,
 )
+print(build_cfg)
 
 extensions = [
         Extension('hdstats.geomedian', ['hdstats/geomedian.pyx'], **build_cfg),
@@ -50,7 +51,7 @@ setup(
     packages=find_packages(".", exclude=['tests']),
     include_package_data=True,
     package_data={'': ['hdstats/*.pyx', 'hdstats/*.pyx', 'hdstats/*.h', 'hdstats/*.c']},
-    setup_requires=["Cython>=0.23", "numpy"],
+    setup_requires=["Cython>=0.23", "numpy", "scipy"],
     install_requires=["numpy", "scipy", "astropy"],
     tests_require=tests_require,
     extras_require={
