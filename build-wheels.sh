@@ -10,14 +10,12 @@ function repair_wheel {
     fi
 }
 
-
 # Install a system package required by our library
 # yum install -y atlas-devel
 
 # Compile wheels
-for PYBIN in /opt/python/cp36*/bin; do
-#    "${PYBIN}/pip" install -r /io/dev-requirements.txt
-    "${PYBIN}/pip" wheel /io/ --no-deps -w wheelhouse/
+for python in /opt/python/cp36*/bin/python; do
+    "${python}" -m pip wheel /io/ --no-deps -w wheelhouse/
 done
 
 # Bundle external shared libraries into the wheels
@@ -26,8 +24,12 @@ for whl in wheelhouse/*.whl; do
 done
 
 # Install packages and test
-for PYBIN in /opt/python/cp36*/bin/; do
-    "${PYBIN}/pip" install astropy numpy scipy joblib pytest
-    "${PYBIN}/pip" install hdstats[test] --no-index -f /io/wheelhouse
-    (cd "$HOME"; "${PYBIN}/pytest" /io/tests)
+#  running tests from source directory fails due to some
+#  pytest path manipulation issue or something,
+#  running tests from /tmp works
+cp -r /io/data /io/tests /tmp
+for python in /opt/python/cp36*/bin/python; do
+    "${python}" -m pip install astropy numpy scipy joblib pytest
+    "${python}" -m pip install hdstats[test] --no-index -f /io/wheelhouse
+    (cd "/tmp"; "${python}" -m pytest ./tests)
 done
