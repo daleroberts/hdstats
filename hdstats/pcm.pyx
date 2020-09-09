@@ -610,8 +610,7 @@ def __emad(const floating [:, :, :, :] X, const floating [:, :, :] gm, floating 
                     total = 0.
                     for j in range(p):
                         value = X[row, col, j, t] - gm[row, col, j]
-                        if not isnan(value):
-                            total = total + value*value
+                        total = total + value*value
                     result[row, col, t] = sqrt(total)
 
 
