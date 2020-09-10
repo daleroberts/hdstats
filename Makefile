@@ -1,3 +1,15 @@
+define HELP
+make test|doc|sdist|upload|manylinux_wheels|clean
+
+  test             - compile in place and run tests
+  doc              - build documentation
+  sdist            - build source distribution
+  manylinux_wheels - build highly compatible binary wheels (uses docker)
+endef
+export HELP
+
+help:
+	@echo "$$HELP"
 
 inplace:
 	python3 setup.py build_ext -i
@@ -36,3 +48,15 @@ sdist:
 
 upload:
 	python3 setup.py sdist register upload
+
+DOCKER_IMAGE = quay.io/pypa/manylinux2010_x86_64
+PLAT = manylinux2010_x86_64
+
+manylinux_wheels:
+	docker pull ${DOCKER_IMAGE}
+	docker run --rm -e PLAT=${PLAT} -v `pwd`:/io ${DOCKER_IMAGE} ${PRE_CMD} /io/build-wheels.sh
+	@echo "Wheels are in ./wheelhouse"
+	@ls -la ./wheelhouse
+
+
+.PHONY: manylinux_wheels sdist clean test inplace
