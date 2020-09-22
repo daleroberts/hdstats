@@ -623,24 +623,26 @@ def __smad(const floating[:, :, :, :] X, const floating[:, :, :] gm, floating[:,
     cdef int p = X.shape[2]
     cdef int n = X.shape[3]
     cdef int j, t, row, col
-    cdef float64_t numer, norma, normb, value
+    cdef float64_t numer, norma, normb, normb_sqrt, value
 
     with nogil, parallel(num_threads=number_of_threads):
         for row in prange(m, schedule='static'):
             for col in range(q):
-                for t in range(n):
+                normb = 0.
+                for j in range(p):
+                    normb = normb + gm[row, col, j]*gm[row, col, j]
+                normb_sqrt = sqrt(normb)
 
+                for t in range(n):
                     numer = 0.
                     norma = 0.
-                    normb = 0.
 
                     for j in range(p):
                         value = X[row, col, j, t]*gm[row, col, j]
                         numer = numer + value
                         norma = norma + X[row, col, j, t]*X[row, col, j, t]
-                        normb = normb + gm[row, col, j]*gm[row, col, j]
 
-                    result[row, col, t] = 1. - numer/(sqrt(norma)*sqrt(normb))
+                    result[row, col, t] = 1. - numer/(sqrt(norma)*normb_sqrt)
 
 
 def __bcmad(const floating[:, :, :, :] X, const floating[:, :, :] gm, floating[:,:,:] result, int num_threads):
