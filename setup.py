@@ -31,14 +31,14 @@ build_cfg = dict(
 print(build_cfg)
 
 extensions = [
-        Extension('hdstats.geomedian', ['hdstats/geomedian.pyx'], **build_cfg),
-        Extension('hdstats.pcm', ['hdstats/pcm.pyx'], **build_cfg),
-        Extension('hdstats.ts', ['hdstats/ts.pyx'], **build_cfg),
-        Extension('hdstats.dtw', ['hdstats/dtw.pyx'], **build_cfg),
-        Extension('hdstats.truncated', ['hdstats/truncated.pyx', 'hdstats/randomkit.c'], 
-                    depends=['hdstats/randomkit.h'], **build_cfg),
-        Extension('hdstats.wishart', ['hdstats/wishart.pyx', 'hdstats/randomkit.c'], 
-                    depends=['hdstats/randomkit.h'], **build_cfg),
+    Extension('hdstats.geomedian', ['hdstats/geomedian.pyx'], **build_cfg),
+    Extension('hdstats.pcm', ['hdstats/pcm.pyx'], **build_cfg),
+    Extension('hdstats.ts', ['hdstats/ts.pyx'], **build_cfg),
+    Extension('hdstats.dtw', ['hdstats/dtw.pyx'], **build_cfg),
+    Extension('hdstats.truncated', ['hdstats/truncated.pyx', 'hdstats/randomkit.c'],
+              depends=['hdstats/randomkit.h'], **build_cfg),
+    Extension('hdstats.wishart', ['hdstats/wishart.pyx', 'hdstats/randomkit.c'],
+              depends=['hdstats/randomkit.h'], **build_cfg),
 ]
 
 tests_require = [
@@ -57,7 +57,7 @@ setup(
     extras_require={
         'test': tests_require,
     },
-    version="0.1.5",
+    version="0.1.6",
     description="High-dimensional statistics.",
     url="http://github.com/daleroberts/hdstats",
     author="Dale Roberts",
