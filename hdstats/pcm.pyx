@@ -864,9 +864,6 @@ def emad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_th
 
     dtype = np.float32
 
-    if not nocheck:
-        bad = __bad_mask(X)
-
     result = np.empty((m, q, n), dtype=dtype)
 
     __emad(X, gm, result, num_threads)
@@ -874,7 +871,6 @@ def emad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_th
     np.seterr(**old)
 
     if not nocheck:
-        result[bad] = np.nan
         return np.nanmedian(result, axis=2)
     else:
         return np.median(result, axis=2)
@@ -916,15 +912,11 @@ def smad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_th
 
     result = np.empty((m, q, n), dtype=dtype)
 
-    if not nocheck:
-        bad = __bad_mask(X)
-
     __smad(X, gm, result, num_threads)
 
     np.seterr(**old)
 
     if not nocheck:
-        result[bad] = np.nan
         return np.nanmedian(result, axis=2)
     else:
         return np.median(result, axis=2)
@@ -964,9 +956,6 @@ def bcmad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_t
 
     dtype = np.float32
 
-    if not nocheck:
-        bad = __bad_mask(X)
-
     result = np.empty((m, q, n), dtype=dtype)
 
     __bcmad(X, gm, result, num_threads)
@@ -974,7 +963,6 @@ def bcmad(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num_t
     np.seterr(**old)
 
     if not nocheck:
-        result[bad] = np.nan
         return np.nanmedian(result, axis=2)
     else:
         return np.median(result, axis=2)
