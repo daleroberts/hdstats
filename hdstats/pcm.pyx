@@ -10,7 +10,8 @@ from libc.stdlib cimport abort, malloc, free
 from libc.math cimport isnan, sqrt, acos, fabs, exp, log
 from .utils import get_max_threads
 
-ctypedef np.int16_t fixed
+ctypedef np.int16_t int16_t
+ctypedef np.int16_t uint16_t
 ctypedef np.float32_t floating
 ctypedef np.float32_t float32_t
 ctypedef np.float64_t float64_t
@@ -204,9 +205,9 @@ def __gm(const floating [:, :, :, :] X, floating [:, :, :] mX,
         free(T)
         free(R)
 
-def __gm_fixed(const fixed [:, :, :, :] X, floating [:, :, :] mX,
+def __gm_int16(const int16 [:, :, :, :] X, floating [:, :, :] mX,
                const floating [:] w, int maxiters, const floating eps,
-               int num_threads, fixed nodata=-999):
+               int num_threads, int16 nodata=-999):
     """ """
     cdef int number_of_threads = num_threads
     cdef int m = X.shape[0]
@@ -217,7 +218,7 @@ def __gm_fixed(const fixed [:, :, :, :] X, floating [:, :, :] mX,
     cdef int nzeros, iteration
     cdef int reseed = 0
     cdef bool allnan = True
-    cdef fixed fixedvalue
+    cdef int16 fixedvalue
     cdef float64_t dist, Dinvs, total, r, rinv, tmp, Di, d, value
     cdef float64_t nan = <float64_t> np.nan
     cdef floating *D
@@ -392,6 +393,193 @@ def __gm_fixed(const fixed [:, :, :, :] X, floating [:, :, :] mX,
         free(T)
         free(R)
 
+def __gm_uint16(const uint16 [:, :, :, :] X, floating [:, :, :] mX,
+               const floating [:] w, int maxiters, const floating eps,
+               int num_threads, uint16 nodata=0):
+    """ """
+    cdef int number_of_threads = num_threads
+    cdef int m = X.shape[0]
+    cdef int q = X.shape[1]
+    cdef int p = X.shape[2]
+    cdef int n = X.shape[3]
+    cdef int i, j, k, row, col
+    cdef int nzeros, iteration
+    cdef int reseed = 0
+    cdef bool allnan = True
+    cdef uint16 fixedvalue
+    cdef float64_t dist, Dinvs, total, r, rinv, tmp, Di, d, value
+    cdef float64_t nan = <float64_t> np.nan
+    cdef floating *D
+    cdef floating *Dinv
+    cdef floating *T
+    cdef floating *W
+    cdef floating *y
+    cdef floating *y1
+    cdef floating *R
+
+    with nogil, parallel(num_threads=number_of_threads):
+        Dinv = <floating *> malloc(sizeof(floating) * n)
+        y1 = <floating *> malloc(sizeof(floating) * p)
+        y = <floating *> malloc(sizeof(floating) * p)
+        D = <floating *> malloc(sizeof(floating) * n)
+        W = <floating *> malloc(sizeof(floating) * n)
+        T = <floating *> malloc(sizeof(floating) * p)
+        R = <floating *> malloc(sizeof(floating) * p)
+
+        for row in prange(m, schedule='dynamic'):
+
+            reseed = 1
+
+            for col in range(q):
+
+                # zero everything just to be careful for now...
+
+                for j in range(p):
+                    y1[j] = 0.0
+                    y[j] = 0.0
+                    T[j] = 0.0
+                    R[j] = 0.0
+
+                for i in range(n):
+                    Dinv[i] = 0.0
+                    D[i] = 0.0
+                    W[i] = 0.0
+
+                dist = 0.0
+                Dinvs = 0.0
+                total = 0.0
+                r = 0.0
+                rinv = 0.0
+                Di = 0.0
+                d = 0.0
+                value = 0.0
+
+                nzeros = 0
+
+                if reseed == 1:
+
+                    for j in range(p):
+                        # nanmean
+                        total = 0.
+                        k = 0
+                        for i in range(n):
+                            fixedvalue = X[row, col, j, i]
+                            value = fixedvalue / 10000.
+                            if fixedvalue != nodata:
+                                total = total + value
+                                k = k + 1
+                        y[j] = total / k
+
+                iteration = 0
+                while iteration < maxiters:
+
+                    for i in range(n):
+
+                        # euclidean distance
+                        total = 0.
+                        for j in range(p):
+                            fixedvalue = X[row, col, j, i]
+                            value = fixedvalue / 10000.
+                            if fixedvalue != nodata and not isnan(y[j]):
+                                value = value - y[j]
+                                total = total + value*value
+                            else:
+                                total = nan
+                                break
+                        Di = sqrt(total)
+
+                        D[i] = Di
+                        if not isnan(Di):
+                            if fabs(Di) > 0.:
+                                Dinv[i] = w[i] / Di
+                            else:
+                                Dinv[i] = w[i]
+                        else:
+                            Dinv[i] = nan
+
+                    # nansum
+                    Dinvs = 0.
+                    for i in range(n):
+                        if not isnan(Dinv[i]):
+                            Dinvs = Dinvs + Dinv[i]
+
+                    for i in range(n):
+                        W[i] = Dinv[i] / Dinvs
+
+                    for j in range(p):
+                        allnan = True
+                        total = 0.
+                        for i in range(n):
+                            fixedvalue = X[row, col, j, i]
+                            tmp = W[i] * X[row, col, j, i] / 10000.
+                            if not isnan(tmp) and fixedvalue != nodata:
+                                total = total + tmp
+                                allnan = False
+
+                        if allnan:
+                            T[j] = nan
+                        else:
+                            T[j] = total
+
+                    nzeros = n
+                    for i in range(n):
+                        if isnan(D[i]) or fabs(D[i]) > 0.:
+                            nzeros = nzeros - 1
+
+                    if nzeros == 0:
+                        for j in range(p):
+                            y1[j] = T[j]
+                    elif nzeros == n:
+                        for j in range(p):
+                            y1[j] = y[j]
+                        break
+                    else:
+                        for j in range(p):
+                            R[j] = (T[j] - y[j]) * Dinvs
+
+                        r = 0.
+                        for j in range(p):
+                            r = r + R[j]*R[j]
+                        r = sqrt(r)
+
+                        if r > 0.:
+                            rinv = nzeros/r
+                        else:
+                            rinv = 0.
+
+                        for j in range(p):
+                            y1[j] = max(0, 1-rinv)*T[j] + \
+                                min(1, rinv)*y[j]
+
+                    total = 0.
+                    for j in range(p):
+                        value = y[j] - y1[j]
+                        total = total + value*value
+                    dist = sqrt(total)
+
+                    for j in range(p):
+                        y[j] = y1[j]
+
+                    iteration = iteration + 1
+
+                    if isnan(dist):
+                        reseed = 1
+                        break
+                    else:
+                        reseed = 0
+
+                    if dist < eps:
+                        break
+
+                for j in range(p):
+                    mX[row, col, j] = y1[j]
+
+        free(Dinv)
+        free(y1)
+        free(D)
+        free(W)
+        free(T)
+        free(R)
 
 def __wgm(const floating [:, :, :, :] X, floating [:, :, :] mX,
           int bi, int bj, float64_t rho, float64_t delta,
@@ -682,7 +870,7 @@ def __bad_mask(np.ndarray[floating, ndim=4] X):
     return np.isnan(X.sum(axis=2)).all(axis=2)
 
 def gm(X, weight=None, maxiters=MAXITERS, floating eps=EPS, num_threads=None, nocheck=False,
-       nodata=-999):
+       nodata=None):
     """
     Generate a geometric median pixel composite mosaic by reducing along the last axis.
 
@@ -700,8 +888,9 @@ def gm(X, weight=None, maxiters=MAXITERS, floating eps=EPS, num_threads=None, no
         The number of processing threads to use for the computation.
     nocheck : bool
         Do not perform data checks.
-    nodata : int
-        If the dtype is np.int16 use this value to indicate missing data.
+    nodata : uint16 or int16
+        If the dtype is (u)int16 use this value to indicate missing data.
+        Default is -999 for int16 and 0 for uint16
     Returns
     -------
     m : ndarray
@@ -725,7 +914,15 @@ def gm(X, weight=None, maxiters=MAXITERS, floating eps=EPS, num_threads=None, no
     result = np.empty((m, q, p), dtype=dtype)
 
     if X.dtype == np.int16:
-        __gm_fixed(X, result, w, maxiters, eps, num_threads, nodata=nodata)
+        if nodata is None:
+            nodata = -999
+        __gm_int16(X, result, w, maxiters, eps, num_threads, nodata=nodata)
+        return result
+
+    if X.dtype == np.uint16:
+        if nodata is None:
+            nodata = 0
+        __gm_uint16(X, result, w, maxiters, eps, num_threads, nodata=nodata)
         return result
 
     if not nocheck:
