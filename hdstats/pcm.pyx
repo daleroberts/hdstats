@@ -206,7 +206,7 @@ def __gm(const floating [:, :, :, :] X, floating [:, :, :] mX,
 
 def __gm_fixed(const fixed [:, :, :, :] X, floating [:, :, :] mX,
                const floating [:] w, int maxiters, const floating eps,
-               int num_threads, fixed missing=-999):
+               int num_threads, fixed nodata=-999):
     """ """
     cdef int number_of_threads = num_threads
     cdef int m = X.shape[0]
@@ -276,7 +276,7 @@ def __gm_fixed(const fixed [:, :, :, :] X, floating [:, :, :] mX,
                         for i in range(n):
                             fixedvalue = X[row, col, j, i]
                             value = fixedvalue / 10000.
-                            if fixedvalue != missing:
+                            if fixedvalue != nodata:
                                 total = total + value
                                 k = k + 1
                         y[j] = total / k
@@ -291,7 +291,7 @@ def __gm_fixed(const fixed [:, :, :, :] X, floating [:, :, :] mX,
                         for j in range(p):
                             fixedvalue = X[row, col, j, i]
                             value = fixedvalue / 10000.
-                            if fixedvalue != missing and not isnan(y[j]):
+                            if fixedvalue != nodata and not isnan(y[j]):
                                 value = value - y[j]
                                 total = total + value*value
                             else:
@@ -323,7 +323,7 @@ def __gm_fixed(const fixed [:, :, :, :] X, floating [:, :, :] mX,
                         for i in range(n):
                             fixedvalue = X[row, col, j, i]
                             tmp = W[i] * X[row, col, j, i] / 10000.
-                            if not isnan(tmp) and fixedvalue != missing:
+                            if not isnan(tmp) and fixedvalue != nodata:
                                 total = total + tmp
                                 allnan = False
 
@@ -682,7 +682,7 @@ def __bad_mask(np.ndarray[floating, ndim=4] X):
     return np.isnan(X.sum(axis=2)).all(axis=2)
 
 def gm(X, weight=None, maxiters=MAXITERS, floating eps=EPS, num_threads=None, nocheck=False,
-       missing=-999):
+       nodata=-999):
     """
     Generate a geometric median pixel composite mosaic by reducing along the last axis.
 
@@ -700,7 +700,7 @@ def gm(X, weight=None, maxiters=MAXITERS, floating eps=EPS, num_threads=None, no
         The number of processing threads to use for the computation.
     nocheck : bool
         Do not perform data checks.
-    missing : int
+    nodata : int
         If the dtype is np.int16 use this value to indicate missing data.
     Returns
     -------
@@ -725,7 +725,7 @@ def gm(X, weight=None, maxiters=MAXITERS, floating eps=EPS, num_threads=None, no
     result = np.empty((m, q, p), dtype=dtype)
 
     if X.dtype == np.int16:
-        __gm_fixed(X, result, w, maxiters, eps, num_threads, missing=missing)
+        __gm_fixed(X, result, w, maxiters, eps, num_threads, nodata=nodata)
         return result
 
     if not nocheck:
