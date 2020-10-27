@@ -205,9 +205,9 @@ def __gm(const floating [:, :, :, :] X, floating [:, :, :] mX,
         free(T)
         free(R)
 
-def __gm_int16(const int16 [:, :, :, :] X, floating [:, :, :] mX,
+def __gm_int16(const int16_t [:, :, :, :] X, floating [:, :, :] mX,
                const floating [:] w, int maxiters, const floating eps,
-               int num_threads, int16 nodata=-999):
+               int num_threads, int16_t nodata=-999):
     """ """
     cdef int number_of_threads = num_threads
     cdef int m = X.shape[0]
@@ -218,7 +218,7 @@ def __gm_int16(const int16 [:, :, :, :] X, floating [:, :, :] mX,
     cdef int nzeros, iteration
     cdef int reseed = 0
     cdef bool allnan = True
-    cdef int16 fixedvalue
+    cdef int16_t fixedvalue
     cdef float64_t dist, Dinvs, total, r, rinv, tmp, Di, d, value
     cdef float64_t nan = <float64_t> np.nan
     cdef floating *D
@@ -393,9 +393,9 @@ def __gm_int16(const int16 [:, :, :, :] X, floating [:, :, :] mX,
         free(T)
         free(R)
 
-def __gm_uint16(const uint16 [:, :, :, :] X, floating [:, :, :] mX,
+def __gm_uint16(const uint16_t [:, :, :, :] X, floating [:, :, :] mX,
                const floating [:] w, int maxiters, const floating eps,
-               int num_threads, uint16 nodata=0):
+               int num_threads, uint16_t nodata=0):
     """ """
     cdef int number_of_threads = num_threads
     cdef int m = X.shape[0]
@@ -406,7 +406,7 @@ def __gm_uint16(const uint16 [:, :, :, :] X, floating [:, :, :] mX,
     cdef int nzeros, iteration
     cdef int reseed = 0
     cdef bool allnan = True
-    cdef uint16 fixedvalue
+    cdef uint16_t fixedvalue
     cdef float64_t dist, Dinvs, total, r, rinv, tmp, Di, d, value
     cdef float64_t nan = <float64_t> np.nan
     cdef floating *D
