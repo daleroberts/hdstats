@@ -11,7 +11,7 @@ from libc.math cimport isnan, sqrt, acos, fabs, exp, log
 from .utils import get_max_threads
 
 ctypedef np.int16_t int16_t
-ctypedef np.int16_t uint16_t
+ctypedef np.uint16_t uint16_t
 ctypedef np.float32_t floating
 ctypedef np.float32_t float32_t
 ctypedef np.float64_t float64_t
