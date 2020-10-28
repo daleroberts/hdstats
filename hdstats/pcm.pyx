@@ -207,7 +207,8 @@ def __gm(const floating [:, :, :, :] X, floating [:, :, :] mX,
 
 def __gm_int16(const int16_t [:, :, :, :] X, floating [:, :, :] mX,
                const floating [:] w, int maxiters, const floating eps,
-               int num_threads, int16_t nodata=-999):
+               int num_threads, int16_t nodata=-999,
+               const floating scale = 1e-4, const floating offset = 0):
     """ """
     cdef int number_of_threads = num_threads
     cdef int m = X.shape[0]
@@ -276,7 +277,7 @@ def __gm_int16(const int16_t [:, :, :, :] X, floating [:, :, :] mX,
                         k = 0
                         for i in range(n):
                             fixedvalue = X[row, col, j, i]
-                            value = fixedvalue / 10000.
+                            value = fixedvalue * scale + offset
                             if fixedvalue != nodata:
                                 total = total + value
                                 k = k + 1
@@ -291,7 +292,7 @@ def __gm_int16(const int16_t [:, :, :, :] X, floating [:, :, :] mX,
                         total = 0.
                         for j in range(p):
                             fixedvalue = X[row, col, j, i]
-                            value = fixedvalue / 10000.
+                            value = fixedvalue * scale + offset
                             if fixedvalue != nodata and not isnan(y[j]):
                                 value = value - y[j]
                                 total = total + value*value
@@ -323,7 +324,7 @@ def __gm_int16(const int16_t [:, :, :, :] X, floating [:, :, :] mX,
                         total = 0.
                         for i in range(n):
                             fixedvalue = X[row, col, j, i]
-                            tmp = W[i] * X[row, col, j, i] / 10000.
+                            tmp = W[i] * (fixedvalue * scale + offset)
                             if not isnan(tmp) and fixedvalue != nodata:
                                 total = total + tmp
                                 allnan = False
@@ -395,7 +396,8 @@ def __gm_int16(const int16_t [:, :, :, :] X, floating [:, :, :] mX,
 
 def __gm_uint16(const uint16_t [:, :, :, :] X, floating [:, :, :] mX,
                const floating [:] w, int maxiters, const floating eps,
-               int num_threads, uint16_t nodata=0):
+                int num_threads, uint16_t nodata=0,
+                const floating scale = 1e-4, const floating offset = 0):
     """ """
     cdef int number_of_threads = num_threads
     cdef int m = X.shape[0]
@@ -464,7 +466,7 @@ def __gm_uint16(const uint16_t [:, :, :, :] X, floating [:, :, :] mX,
                         k = 0
                         for i in range(n):
                             fixedvalue = X[row, col, j, i]
-                            value = fixedvalue / 10000.
+                            value = fixedvalue * scale + offset
                             if fixedvalue != nodata:
                                 total = total + value
                                 k = k + 1
@@ -479,7 +481,7 @@ def __gm_uint16(const uint16_t [:, :, :, :] X, floating [:, :, :] mX,
                         total = 0.
                         for j in range(p):
                             fixedvalue = X[row, col, j, i]
-                            value = fixedvalue / 10000.
+                            value = fixedvalue * scale + offset
                             if fixedvalue != nodata and not isnan(y[j]):
                                 value = value - y[j]
                                 total = total + value*value
@@ -511,7 +513,7 @@ def __gm_uint16(const uint16_t [:, :, :, :] X, floating [:, :, :] mX,
                         total = 0.
                         for i in range(n):
                             fixedvalue = X[row, col, j, i]
-                            tmp = W[i] * X[row, col, j, i] / 10000.
+                            tmp = W[i] * (fixedvalue * scale + offset)
                             if not isnan(tmp) and fixedvalue != nodata:
                                 total = total + tmp
                                 allnan = False
@@ -870,7 +872,8 @@ def __bad_mask(np.ndarray[floating, ndim=4] X):
     return np.isnan(X.sum(axis=2)).all(axis=2)
 
 def gm(X, weight=None, maxiters=MAXITERS, floating eps=EPS, num_threads=None, nocheck=False,
-       nodata=None):
+       nodata=None,
+       **kw):
     """
     Generate a geometric median pixel composite mosaic by reducing along the last axis.
 
@@ -891,6 +894,8 @@ def gm(X, weight=None, maxiters=MAXITERS, floating eps=EPS, num_threads=None, no
     nodata : uint16 or int16
         If the dtype is (u)int16 use this value to indicate missing data.
         Default is -999 for int16 and 0 for uint16
+    scale, offset: float32
+        Used with int inputs to convert to float as ``float_val = scale*int_val + offset``
     Returns
     -------
     m : ndarray
@@ -916,13 +921,13 @@ def gm(X, weight=None, maxiters=MAXITERS, floating eps=EPS, num_threads=None, no
     if X.dtype == np.int16:
         if nodata is None:
             nodata = -999
-        __gm_int16(X, result, w, maxiters, eps, num_threads, nodata=nodata)
+        __gm_int16(X, result, w, maxiters, eps, num_threads, nodata=nodata, **kw)
         return result
 
     if X.dtype == np.uint16:
         if nodata is None:
             nodata = 0
-        __gm_uint16(X, result, w, maxiters, eps, num_threads, nodata=nodata)
+        __gm_uint16(X, result, w, maxiters, eps, num_threads, nodata=nodata, **kw)
         return result
 
     if not nocheck:
