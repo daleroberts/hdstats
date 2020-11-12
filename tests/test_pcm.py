@@ -21,7 +21,7 @@ class TestPixelCompositeMosaic:
         fixeddata = (self.data * 10000).astype(np.int16)
 #        fixeddata[1,1,0,:] = -999
         fgm = hdstats.nangeomedian_pcm(fixeddata)
-        gm = hdstats.nangeomedian_pcm(self.data)
+        gm = hdstats.nangeomedian_pcm(self.data)*10000
         npt.assert_approx_equal(np.nanmean(fgm), np.nanmean(gm),
                                 significant=4)
 
