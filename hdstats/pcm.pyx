@@ -385,7 +385,7 @@ def __gm_int16(const int16_t [:, :, :, :] X, floating [:, :, :] mX,
                         break
 
                 for j in range(p):
-                    mX[row, col, j] = y1[j]
+                    mX[row, col, j] = (y1[j] - offset)/scale
 
         free(Dinv)
         free(y1)
@@ -574,7 +574,7 @@ def __gm_uint16(const uint16_t [:, :, :, :] X, floating [:, :, :] mX,
                         break
 
                 for j in range(p):
-                    mX[row, col, j] = y1[j]
+                    mX[row, col, j] = (y1[j] - offset)/scale
 
         free(Dinv)
         free(y1)
