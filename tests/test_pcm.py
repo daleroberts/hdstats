@@ -46,6 +46,15 @@ class TestMedianAbsoluteDeviation:
         emad = hdstats.emad_pcm(self.data, self.gm)
         assert emad.shape == (200, 200)
 
+    def test_emad_uint16(self):
+        stat = hdstats.emad_pcm(self.data, self.gm)
+        intdata = (self.data * 10000).astype(np.uint16)
+        intdata[1,1,0,:] = 0
+        intstat = hdstats.emad_pcm(intdata, self.gm, nodata=0)
+        npt.assert_approx_equal(np.nanmean(stat),
+                                np.nanmean(intstat),
+                                significant=4)
+
     def test_emad_baddata(self):
         baddata = self.data[:3,:3,:,:].copy()
         baddata[1,1,0,:] = np.nan
@@ -57,6 +66,15 @@ class TestMedianAbsoluteDeviation:
         smad = hdstats.smad_pcm(self.data, self.gm)
         assert smad.shape == (200, 200)
 
+    def test_smad_uint16(self):
+        stat = hdstats.smad_pcm(self.data, self.gm)
+        intdata = (self.data * 10000).astype(np.uint16)
+        intdata[1,1,0,:] = 0
+        intstat = hdstats.smad_pcm(intdata, self.gm, nodata=0)
+        npt.assert_approx_equal(np.nanmean(stat),
+                                np.nanmean(intstat),
+                                significant=4)
+
     def test_smad_baddata(self):
         baddata = self.data[:3,:3,:,:].copy()
         baddata[1,1,0,:] = np.nan
@@ -66,6 +84,15 @@ class TestMedianAbsoluteDeviation:
     def test_bcmad(self):
         bcmad = hdstats.smad_pcm(self.data, self.gm)
         assert bcmad.shape == (200, 200)
+
+    def test_bcmad_uint16(self):
+        stat = hdstats.bcmad_pcm(self.data, self.gm)
+        intdata = (self.data * 10000).astype(np.uint16)
+        intdata[1,1,0,:] = 0
+        intstat = hdstats.bcmad_pcm(intdata, self.gm, nodata=0)
+        npt.assert_approx_equal(np.nanmean(stat),
+                                np.nanmean(intstat),
+                                significant=4)
 
     def test_bcmad_baddata(self):
         baddata = self.data[:3,:3,:,:].copy()
