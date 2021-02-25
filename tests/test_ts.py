@@ -22,7 +22,7 @@ class TestTimeSeriesFeatures:
         assert ed.shape == (200, 200, 18)
 
     def test_completion(self):
-        completed = hdstats.completion(self.data, 1.0)
+        completed = hdstats.completion(self.data[:,:,0,:])
         assert np.count_nonzero(np.isnan(completed)) == 0
 
     def test_discordance(self):

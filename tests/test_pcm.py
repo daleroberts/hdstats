@@ -13,17 +13,22 @@ class TestPixelCompositeMosaic:
         assert self.data.shape == (200, 200, 8, 18)
         assert self.data.dtype == np.float32
 
-    def test_nangeomedian(self):
+    def test_nangeomedian_shape(self):
         gm = hdstats.nangeomedian_pcm(self.data)
         assert gm.shape == (200, 200, 8)
 
+    def test_nangeomedian_value(self):
+        gm = hdstats.nangeomedian_pcm(self.data, nodata=np.nan)
+        npt.assert_allclose(gm[0,0,:], hdstats.nangeomedian(self.data[0,0,:,:]), rtol=1e-4, atol=1e-4)
+        npt.assert_approx_equal(np.nanmean(gm), 0.1432, significant=4)
+
     def test_nangeomedian_fixed(self):
-        fixeddata = (self.data * 10000).astype(np.int16)
+        data = self.data
+        fixeddata = (data * 10000).astype(np.int16)
 #        fixeddata[1,1,0,:] = -999
         fgm = hdstats.nangeomedian_pcm(fixeddata)
-        gm = hdstats.nangeomedian_pcm(self.data)*10000
-        npt.assert_approx_equal(np.nanmean(fgm), np.nanmean(gm),
-                                significant=4)
+        gm = (hdstats.nangeomedian_pcm(data)*10000).astype(np.int16)
+        npt.assert_approx_equal(np.nanmean(fgm), np.nanmean(gm), significant=4)
 
     def test_nangeomedian_ro(self):
         data = self.data.copy()
@@ -35,6 +40,7 @@ class TestPixelCompositeMosaic:
         baddata = self.data[:3,:3,:,:].copy()
         baddata[1,1,0,:] = np.nan
         gm = hdstats.nangeomedian_pcm(baddata)
+        print(gm[1,1,0])
         assert np.isnan(gm[1,1,0])
 
 class TestMedianAbsoluteDeviation:

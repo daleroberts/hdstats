@@ -3,7 +3,6 @@
 import numpy as np
 import hdstats
 
-from astropy.convolution import Gaussian2DKernel, interpolate_replace_nans
 from scipy.signal import cwt, find_peaks_cwt, ricker, welch, wiener
 
 cimport numpy as np
@@ -109,16 +108,6 @@ def eucdist(np.ndarray[floating, ndim=4] X, np.ndarray[floating, ndim=3] gm, num
     __eucdist(X, gm, result, num_threads)
     
     return result
-
-
-def completion(data, s=1.0):
-    kernel = Gaussian2DKernel(x_stddev=s, y_stddev=s)
-    data = np.transpose(data, [0,2,1,3])
-    for i in range(data.shape[0]):
-        for b in range(data.shape[1]):
-            data[i,b,:,:] = interpolate_replace_nans(data[i,b,:,:], kernel)
-    data = np.transpose(data, [0,2,1,3])
-    return data
 
 
 def fast_completion(arr):

@@ -1,93 +1,89 @@
-# Copyright (C) 2017 Dale Roberts - All Rights Reserved
-
 # cython: cdivision=True, boundscheck=False, nonecheck=False, wraparound=False, language_level=3
 
 import numpy as np
-import warnings
 
-from libc.math cimport isnan, sqrt, acos, fabs
+cimport numpy as np
 
-cimport numpy as cnp
+from libc.stdlib cimport abort, malloc, free
+from libc.math cimport isnan, sqrt, acos, fabs, exp, log
+from .utils import get_max_threads
 
-ctypedef fused floating:
-    cnp.float32_t
-    cnp.float64_t
+ctypedef np.int16_t int16_t
+ctypedef np.uint16_t uint16_t
+ctypedef np.float32_t floating
+ctypedef np.float32_t float32_t
+ctypedef np.float64_t float64_t
+ctypedef np.npy_bool bool
 
-ctypedef cnp.float32_t float32_t
-ctypedef cnp.float64_t float64_t
+MAXITERS = 10000
+EPS = 1e-4
 
-cdef floating dot(floating[:] x, floating[:] y) nogil:
-    cdef size_t n = x.shape[0]
-    cdef size_t i = 0
-    cdef float64_t result = 0.
-    for i in range(n):
-        result += x[i] * y[i]
-    return <floating>result
+#cdef float32_t dot(const float32_t[:] x, const float32_t[:] y) nogil:
+#    cdef size_t n = x.shape[0]
+#    cdef size_t i = 0
+#    cdef float64_t result = 0.
+#    for i in range(n):
+#        result += x[i] * y[i]
+#    return <float32_t>result
 
-cdef floating sum(floating[:] x) nogil:
+cdef float32_t sum(const float32_t[:] x) nogil:
     cdef size_t n = x.shape[0]
     cdef float64_t total = 0.
     for i in range(n):
         total += x[i]
-    return <floating>total
+    return <float32_t>total
 
-cdef floating nansum(floating[:] x) nogil:
+cdef float32_t nansum(const float32_t[:] x) nogil:
     cdef size_t n = x.shape[0]
     cdef float64_t total = 0.
     for i in range(n):
         if not isnan(x[i]):
             total += x[i]
-    return <floating>total
+    return <float32_t>total
 
-cdef floating dist_naneuclidean(floating[:] x, floating[:] y) nogil:
-    cdef size_t n = x.shape[0]
-    cdef float64_t d = 0.
-    cdef float64_t tmp
-    for i in range(n):
-        if (not isnan(x[i])) and (not isnan(y[i])):
-            tmp = x[i] - y[i]
-            d += tmp * tmp
-    return <floating>sqrt(d)
+#cdef float32_t dist_naneuclidean(const float32_t[:] x, const float32_t[:] y) nogil:
+#    cdef size_t n = x.shape[0]
+#    cdef float64_t d = 0.
+#    cdef float64_t tmp
+#    for i in range(n):
+#        if (not isnan(x[i])) and (not isnan(y[i])):
+#            tmp = x[i] - y[i]
+#            d += tmp * tmp
+#    return <float32_t>sqrt(d)
 
-cdef floating dist_euclidean(floating[:] x, floating[:] y) nogil:
+cdef float32_t dist_euclidean(const float32_t[:] x, const float32_t[:] y) nogil:
     cdef size_t n = x.shape[0]
     cdef float64_t d = 0.
     cdef float64_t tmp
     for i in range(n):
         tmp = x[i] - y[i]
         d += tmp * tmp
-    return <floating>sqrt(d)
+    return <float32_t>sqrt(d)
 
-cdef floating norm_euclidean(floating[:] x) nogil:
+cdef float32_t norm_euclidean(const float32_t[:] x) nogil:
     cdef size_t n = x.shape[0]
     cdef float64_t d = 0.
     for i in range(n):
         d += x[i] * x[i]
-    return <floating>sqrt(d)
+    return <float32_t>sqrt(d)
 
-cdef geomedian_axis_zero(floating[:, :] X, floating eps=1e-7,
-                         size_t maxiters=500):
+cdef geomedian_axis_zero(const float32_t [:, :] X, float32_t [:] result, float32_t eps=1e-7, size_t maxiters=500):
     cdef size_t p = X.shape[0]
     cdef size_t n = X.shape[1]
 
-    cdef floating[:] y = np.mean(X, axis=0)
+    cdef float32_t[:] y = np.mean(X, axis=0)
 
     if p == 0:
         return y
 
-    if floating is cnp.float32_t:
-        dtype = np.float32
-    else:
-        dtype = np.float64
+    cdef float32_t[:] D = np.empty(p, dtype=np.float32)
+    cdef float32_t[:] Dinv = np.empty(p, dtype=np.float32)
+    cdef float32_t[:] W = np.empty(p, dtype=np.float32)
+    cdef float32_t[:] T = np.empty(n, dtype=np.float32)
+    cdef float32_t[:] y1 = np.empty(n, dtype=np.float32)
+    cdef float32_t[:] R = np.empty(n, dtype=np.float32)
 
-    cdef floating[:] D = np.empty(p, dtype=dtype)
-    cdef floating[:] Dinv = np.empty(p, dtype=dtype)
-    cdef floating[:] W = np.empty(p, dtype=dtype)
-    cdef floating[:] T = np.empty(n, dtype=dtype)
-    cdef floating[:] y1 = np.empty(n, dtype=dtype)
-    cdef floating[:] R = np.empty(n, dtype=dtype)
-
-    cdef floating dist, Dinvs, total, r, rinv, tmp, Di
+    cdef float32_t dist, Dinvs, total, r, rinv, tmp, Di
     cdef size_t nzeros = p
     cdef size_t iteration
 
@@ -144,29 +140,23 @@ cdef geomedian_axis_zero(floating[:, :] X, floating eps=1e-7,
     
     return y
 
-cdef geomedian_axis_one(floating[:, :] X, floating eps=1e-7,
-                           size_t maxiters=500):
+cdef geomedian_axis_one(const float32_t[:, :] X, float32_t[:] result, float32_t eps=1e-7, size_t maxiters=500):
     cdef size_t p = X.shape[0]
     cdef size_t n = X.shape[1]
 
-    cdef floating[:] y = np.mean(X, axis=1)
+    cdef float32_t[:] y = np.mean(X, axis=1)
 
     if n == 1:
         return y
 
-    if floating is cnp.float32_t:
-        dtype = np.float32
-    else:
-        dtype = np.float64
+    cdef float32_t[:] D = np.empty(n, dtype=np.float32)
+    cdef float32_t[:] Dinv = np.empty(n, dtype=np.float32)
+    cdef float32_t[:] W = np.empty(n, dtype=np.float32)
+    cdef float32_t[:] T = np.empty(p, dtype=np.float32)
+    cdef float32_t[:] y1 = np.empty(p, dtype=np.float32)
+    cdef float32_t[:] R = np.empty(p, dtype=np.float32)
 
-    cdef floating[:] D = np.empty(n, dtype=dtype)
-    cdef floating[:] Dinv = np.empty(n, dtype=dtype)
-    cdef floating[:] W = np.empty(n, dtype=dtype)
-    cdef floating[:] T = np.empty(p, dtype=dtype)
-    cdef floating[:] y1 = np.empty(p, dtype=dtype)
-    cdef floating[:] R = np.empty(p, dtype=dtype)
-
-    cdef floating dist, Dinvs, total, r, rinv, tmp, Di
+    cdef float32_t dist, Dinvs, total, r, rinv, tmp, Di
     cdef size_t nzeros = n
     cdef size_t iteration
 
@@ -224,29 +214,22 @@ cdef geomedian_axis_one(floating[:, :] X, floating eps=1e-7,
     return y
 
 
-
-cdef nangeomedian_axis_zero(floating[:, :] X, floating eps=1e-7,
-                            size_t maxiters=500):
+cdef nangeomedian_axis_zero(const float32_t[:, :] X, float32_t[:] result, float32_t eps=1e-7, size_t maxiters=500):
     cdef size_t p = X.shape[0]
     cdef size_t n = X.shape[1]
 
-    cdef floating nan = <floating>float('NaN')
+    cdef float32_t nan = <float32_t>float('NaN')
 
-    cdef floating[:] y = np.nanmean(X, axis=0)
+    cdef float32_t[:] y = np.nanmean(X, axis=0)
 
-    if floating is cnp.float32_t:
-        dtype = np.float32
-    else:
-        dtype = np.float64
+    cdef float32_t[:] D = np.empty(p, dtype=np.float32)
+    cdef float32_t[:] Dinv = np.empty(p, dtype=np.float32)
+    cdef float32_t[:] W = np.empty(p, dtype=np.float32)
+    cdef float32_t[:] T = np.empty(n, dtype=np.float32)
+    cdef float32_t[:] y1 = np.empty(n, dtype=np.float32)
+    cdef float32_t[:] R = np.empty(n, dtype=np.float32)
 
-    cdef floating[:] D = np.empty(p, dtype=dtype)
-    cdef floating[:] Dinv = np.empty(p, dtype=dtype)
-    cdef floating[:] W = np.empty(p, dtype=dtype)
-    cdef floating[:] T = np.empty(n, dtype=dtype)
-    cdef floating[:] y1 = np.empty(n, dtype=dtype)
-    cdef floating[:] R = np.empty(n, dtype=dtype)
-
-    cdef floating dist, Dinvs, total, r, rinv, tmp, Di
+    cdef float32_t dist, Dinvs, total, r, rinv, tmp, Di
     cdef size_t nzeros = p
     cdef size_t iteration
 
@@ -304,30 +287,28 @@ cdef nangeomedian_axis_zero(floating[:, :] X, floating eps=1e-7,
             y[:] = y1
             iteration = iteration + 1
             
-    return y1
+        for j in range(p):
+            result[j] = y1[j]
 
-cdef nangeomedian_axis_one(floating[:, :] X, floating eps=1e-7,
-                           size_t maxiters=500):
+    return result
+
+
+cdef nangeomedian_axis_one(const float32_t[:, :] X, float32_t[:] result, float32_t eps=1e-7, size_t maxiters=500):
     cdef size_t p = X.shape[0]
     cdef size_t n = X.shape[1]
 
-    cdef floating nan = <floating>float('NaN')
+    cdef float32_t nan = <float32_t>float('NaN')
 
-    cdef floating[:] y = np.nanmean(X, axis=1)
+    cdef float32_t[:] y = np.nanmean(X, axis=1)
 
-    if floating is cnp.float32_t:
-        dtype = np.float32
-    else:
-        dtype = np.float64
+    cdef float32_t[:] D = np.empty(n, dtype=np.float32)
+    cdef float32_t[:] Dinv = np.empty(n, dtype=np.float32)
+    cdef float32_t[:] W = np.empty(n, dtype=np.float32)
+    cdef float32_t[:] T = np.empty(p, dtype=np.float32)
+    cdef float32_t[:] y1 = np.empty(p, dtype=np.float32)
+    cdef float32_t[:] R = np.empty(p, dtype=np.float32)
 
-    cdef floating[:] D = np.empty(n, dtype=dtype)
-    cdef floating[:] Dinv = np.empty(n, dtype=dtype)
-    cdef floating[:] W = np.empty(n, dtype=dtype)
-    cdef floating[:] T = np.empty(p, dtype=dtype)
-    cdef floating[:] y1 = np.empty(p, dtype=dtype)
-    cdef floating[:] R = np.empty(p, dtype=dtype)
-
-    cdef floating dist, Dinvs, total, r, rinv, tmp, Di
+    cdef float32_t dist, Dinvs, total, r, rinv, tmp, Di
     cdef size_t nzeros = n
     cdef size_t iteration
 
@@ -384,11 +365,14 @@ cdef nangeomedian_axis_one(floating[:, :] X, floating eps=1e-7,
 
             y[:] = y1
             iteration = iteration + 1
-            
-    return y1
 
-cpdef geomedian(floating[:, :] X, size_t axis=1, floating eps=1e-8,
-                 size_t maxiters=1000):
+        for j in range(p):
+            result[j] = y1[j]
+
+    return result
+
+
+cpdef geomedian(float32_t[:, :] X, size_t axis=1, float32_t eps=1e-8, size_t maxiters=1000):
     """Calculates a Geometric Median for an array `X` of
     shape (p,n).
 
@@ -397,16 +381,17 @@ cpdef geomedian(floating[:, :] X, size_t axis=1, floating eps=1e-8,
     returned.
     """
     if axis == 0:
-        return geomedian_axis_zero(X, eps, maxiters)
+        result = np.zeros(X.shape[1], dtype=np.float32)
+        return geomedian_axis_zero(X, result, eps, maxiters)
 
     if axis == 1:
-        return geomedian_axis_one(X, eps, maxiters)
+        result = np.zeros(X.shape[0], dtype=np.float32)
+        return geomedian_axis_one(X, result, eps, maxiters)
         
     raise IndexError("axis {} out of bounds".format(axis)) 
 
 
-cpdef nangeomedian(floating[:, :] X, size_t axis=1, floating eps=1e-7,
-                 size_t maxiters=500):
+cpdef nangeomedian(float32_t[:, :] X, size_t axis=1, float32_t eps=1e-7, size_t maxiters=1000):
     """Calculates a Geometric Median for an array `X` of
     shape (p,n).
 
@@ -423,7 +408,8 @@ cpdef nangeomedian(floating[:, :] X, size_t axis=1, floating eps=1e-7,
         elif ngood < 3:
             return np.nanmedian(X, axis=axis)
         else:
-            return nangeomedian_axis_zero(X, eps, maxiters)
+            result = np.zeros(X.shape[1], dtype=np.float32)
+            return nangeomedian_axis_zero(X, result, eps, maxiters)
 
     if axis == 1:
         ngood = np.count_nonzero(~np.isnan(X).any(axis=0))
@@ -432,6 +418,96 @@ cpdef nangeomedian(floating[:, :] X, size_t axis=1, floating eps=1e-7,
         elif ngood < 3:
             return np.nanmedian(X, axis=axis)
         else:
-            return nangeomedian_axis_one(X, eps, maxiters)
+            result = np.zeros(X.shape[0], dtype=np.float32)
+            return nangeomedian_axis_one(X, result, eps, maxiters)
 
     raise IndexError("axis {} out of bounds".format(axis)) 
+
+
+def __bad_mask(np.ndarray[floating, ndim=4] X):
+    """ Input is bad if all observation for a given X,Y location are nan.
+        Individual observation is nan if any band value is nan.
+
+        Returns
+        ========
+        2-d boolean array with the shape equal to X.shape[:2]
+        True  -- all observations were nan for this column
+        False -- at least one valid observation for this column
+    """
+    return np.isnan(X.sum(axis=2)).all(axis=2)
+
+
+def __nangeomedian_pcm_float32(const float32_t [:,:,:,:] X, float32_t [:,:,:] result, float32_t eps, size_t maxiters):
+    cdef int m = X.shape[0]
+    cdef int q = X.shape[1]
+    cdef int p = X.shape[2]
+    cdef int n = X.shape[3]
+    cdef int row, col
+
+    for row in range(m):
+        for col in range(q):
+            nangeomedian_axis_one(X[row, col, :, :], result[row, col,:], eps, maxiters)
+
+
+def __nangeomedian_pcm_int16(const int16_t [:,:,:,:] X, int16_t [:,:,:] result, float32_t eps, size_t maxiters):
+    cdef int m = X.shape[0]
+    cdef int q = X.shape[1]
+    cdef int p = X.shape[2]
+    cdef int n = X.shape[3]
+    cdef int row, col
+
+    for row in range(m):
+        for col in range(q):
+            vs = np.array(X[row, col, :, :], dtype=np.float32)
+            rs = np.empty(p, dtype=np.float32)
+            nangeomedian_axis_one(vs, rs)
+            for i in range(p):
+                result[row, col, i] = rs[i]
+
+
+def nangeomedian_pcm(X, eps=1e-7, maxiters=1000, num_threads=1, nodata=None, nocheck=False):
+    """
+    Generate a geometric median pixel composite mosaic by reducing along 
+    the last axis.
+
+    Parameters
+    ----------
+    X : array_like of dtype float32 or float64
+        The array has dimensions (m, q, p, n).
+    num_threads : int
+        The number of processing threads to use for the computation.
+
+    Returns
+    -------
+    m : ndarray
+        The array has dimensions (m, q, p)
+    """
+    cdef int m = X.shape[0]
+    cdef int q = X.shape[1]
+    cdef int p = X.shape[2]
+    cdef int n = X.shape[3]
+
+    if num_threads is None:
+        num_threads = get_max_threads()
+
+    old = np.seterr(all='ignore')
+
+    if X.dtype == np.int16:
+        if nodata is None:
+            nodata = 0
+        result = np.empty((m, q, p), dtype=np.int16)
+        __nangeomedian_pcm_int16(X, result, eps, maxiters)
+    else:
+        if nodata is None:
+            nodata = np.nan
+
+        result = np.empty((m, q, p), dtype=np.float32)
+        __nangeomedian_pcm_float32(X, result, eps, maxiters)
+
+        if not nocheck:
+            bad = __bad_mask(X)
+            result[bad] = np.nan
+
+    np.seterr(**old)
+
+    return result

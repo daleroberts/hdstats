@@ -35,6 +35,7 @@ def nancov(m, y=None, rowvar=1, ddof=1, fweights=None, aweights=None, pairwise=F
         n = X.shape[1]
 
     # Get the product of frequencies and weights
+    
     if fweights is not None:
         fweights = np.asarray(fweights, dtype=np.float64)
         if not np.all(fweights == np.around(fweights)):

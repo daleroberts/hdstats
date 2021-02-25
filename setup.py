@@ -32,13 +32,9 @@ print(build_cfg)
 
 extensions = [
     Extension('hdstats.geomedian', ['hdstats/geomedian.pyx'], **build_cfg),
-    Extension('hdstats.pcm', ['hdstats/pcm.pyx'], **build_cfg),
+    Extension('hdstats.geomad', ['hdstats/geomad.pyx'], **build_cfg),
     Extension('hdstats.ts', ['hdstats/ts.pyx'], **build_cfg),
     Extension('hdstats.dtw', ['hdstats/dtw.pyx'], **build_cfg),
-    Extension('hdstats.truncated', ['hdstats/truncated.pyx', 'hdstats/randomkit.c'],
-              depends=['hdstats/randomkit.h'], **build_cfg),
-    Extension('hdstats.wishart', ['hdstats/wishart.pyx', 'hdstats/randomkit.c'],
-              depends=['hdstats/randomkit.h'], **build_cfg),
 ]
 
 tests_require = [
@@ -52,12 +48,12 @@ setup(
     include_package_data=True,
     package_data={'': ['hdstats/*.pyx', 'hdstats/*.pyx', 'hdstats/*.h', 'hdstats/*.c']},
     setup_requires=["Cython>=0.23", "numpy", "scipy"],
-    install_requires=["numpy", "scipy", "astropy"],
+    install_requires=["numpy", "scipy"],
     tests_require=tests_require,
     extras_require={
         'test': tests_require,
     },
-    version="0.1.8.post1",
+    version="0.2",
     description="High-dimensional statistics.",
     url="http://github.com/daleroberts/hdstats",
     author="Dale Roberts",

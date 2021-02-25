@@ -2,7 +2,7 @@ import numpy as np
 
 from scipy.signal import wiener
 
-def fast_completion(arr):
+def completion(arr):
     mask = np.isnan(arr)
     idx = np.where(~mask, np.arange(mask.shape[-1]), 0)
     np.maximum.accumulate(idx, axis=-1, out=idx)
