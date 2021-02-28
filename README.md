@@ -32,6 +32,8 @@ see [example](https://github.com/daleroberts/hdstats/blob/master/docs/temporal.i
 
 We assume that the data stack dimensions are ordered so that the spatial dimensions are first (*y*,*x*), followed by the spectral dimension of size *p*, finishing with the temporal dimension. Algorithms reduce in the last dimension (typically, the temporal dimension).
 
+---
+
 ### Research and Development / Advanced Implementations
 
 All advanced implementations and cutting-edge research codes are now found in [github.com/daleroberts/hdstats-private](https://github.com/daleroberts/hdstats-private). These are only available to research collaborators.
