@@ -54,7 +54,7 @@ setup(
         'test': tests_require,
     },
     version="0.2",
-    description="High-dimensional statistics.",
+    description="Multivariate / high-dimensional statistics and time series algorithms for spatial-temporal stacks",
     url="http://github.com/daleroberts/hdstats",
     author="Dale Roberts",
     author_email="dale.o.roberts@gmail.com",
