@@ -12,7 +12,7 @@ Generation of geometric median pixel composite mosaics from a stack of data; see
 
 If you are using this algorithm in your research or products, please cite:
 
-Roberts, D., Mueller, N., & McIntyre, A. (2017). High-dimensional pixel composites from earth observation time series. IEEE Transactions on Geoscience and Remote Sensing, 55(11), 6254-6264.
+*Roberts, D., Mueller, N., & McIntyre, A. (2017). High-dimensional pixel composites from earth observation time series. IEEE Transactions on Geoscience and Remote Sensing, 55(11), 6254-6264.*
 
 #### Geometric Median Absolute Deviation (MAD) PCM
 
@@ -20,7 +20,7 @@ Accelerated generation of geometric median absolute deviation pixel composite mo
 
 If you are using this algorithm in your research or products, please cite:
 
-Roberts, D., Dunn, B., & Mueller, N. (2018, July). Open data cube products using high-dimensional statistics of time series. In IGARSS 2018-2018 IEEE International Geoscience and Remote Sensing Symposium (pp. 8647-8650). IEEE.
+*Roberts, D., Dunn, B., & Mueller, N. (2018). Open data cube products using high-dimensional statistics of time series. In IGARSS 2018-2018 IEEE International Geoscience and Remote Sensing Symposium (pp. 8647-8650).*
 
 #### Feature generation for spatial-temporal time series stacks.
 
