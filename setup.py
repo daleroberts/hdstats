@@ -58,7 +58,7 @@ setup(
     url="http://github.com/daleroberts/hdstats",
     author="Dale Roberts",
     author_email="dale.o.roberts@gmail.com",
-    license="Apache 2.0",
+    license="BSD-3-Clause License",
     zip_safe=False,
     ext_modules=extensions
 )
