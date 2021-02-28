@@ -1,6 +1,11 @@
+# Author: Dale Roberts <dale.o.roberts@gmail.com>
+#
+# License: BSD 3 clause
+
 import numpy as np
 
 from scipy.signal import wiener
+
 
 def completion(arr):
     mask = np.isnan(arr)

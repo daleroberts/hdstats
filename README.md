@@ -10,17 +10,21 @@ A library of multivariate, high-dimensional statistics, and time series algorith
 
 Generation of geometric median pixel composite mosaics from a stack of data; see [example](https://github.com/daleroberts/hdstats/blob/master/docs/geomedian.ipynb).
 
-#### Spectral (Geometric) Median Absolute Deviation (MAD)
+If you are using this algorithm in your research or products, please cite:
 
-Accelerated generation of spectral (geometric) median absolute deviation pixel composite mosaics from a stack of data; see [example](https://github.com/daleroberts/hdstats/blob/master/docs/mad.ipynb).
+```
+Roberts, D., Mueller, N., & McIntyre, A. (2017). High-dimensional pixel composites from earth observation time series. IEEE Transactions on Geoscience and Remote Sensing, 55(11), 6254-6264.
+```
 
-#### Euclidean (Geometric) Median Absolute Deviation (MAD)
+#### Geometric Median Absolute Deviation (MAD) PCM
 
-Accelerated generation of Euclidean (geometric) median absolute deviation pixel composite mosaics from a stack of data; see [example](https://github.com/daleroberts/hdstats/blob/master/docs/mad.ipynb).
+Accelerated generation of geometric median absolute deviation pixel composite mosaics from a stack of data; see [example](https://github.com/daleroberts/hdstats/blob/master/docs/mad.ipynb).
 
-#### Bray-Curtis (Geometric) Median Absolute Deviation (MAD)
+If you are using this algorithm in your research or products, please cite:
 
-Accelerated generation of Bray-Curtis (geometric) median absolute deviation pixel composite mosaics from a stack of data; see [example](https://github.com/daleroberts/hdstats/blob/master/docs/mad.ipynb).
+```
+Roberts, D., Dunn, B., & Mueller, N. (2018, July). Open data cube products using high-dimensional statistics of time series. In IGARSS 2018-2018 IEEE International Geoscience and Remote Sensing Symposium (pp. 8647-8650). IEEE.
+```
 
 #### Feature generation for spatial-temporal time series stacks.
 
@@ -34,4 +38,4 @@ We assume that the data stack dimensions are ordered so that the spatial dimensi
 
 ### Research and Development / Advanced Implementations
 
-The advanced implementations and new research codes can now be found at [github.com/daleroberts/hdstats-private](https://github.com/daleroberts/hdstats-private).
+All advanced implementations and cutting-edge research codes are now found in [github.com/daleroberts/hdstats-private](https://github.com/daleroberts/hdstats-private). These are only available to research collaborators.

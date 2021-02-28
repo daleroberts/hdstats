@@ -1,3 +1,7 @@
+# Author: Dale Roberts <dale.o.roberts@gmail.com>
+#
+# License: BSD 3 clause
+
 #cython: boundscheck=False, wraparound=False, nonecheck=False, cdivision=True, language_level=3, embedsignature=True
 
 import numpy as np

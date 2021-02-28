@@ -22,7 +22,7 @@ clean:
 	@rm -fr hdstats/*.so
 	@rm -fr hdstats/dtw.c
 	@rm -fr hdstats/geomedian.c
-	@rm -fr hdstats/pcm.c
+	@rm -fr hdstats/geomad.c
 	@rm -fr hdstats/ts.c
 	@rm -fr hdstats.egg-info
 	@rm -fr hdstats/__pycache__
