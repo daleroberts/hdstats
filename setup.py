@@ -57,7 +57,7 @@ setup(
     extras_require={
         'test': tests_require,
     },
-    version="0.2",
+    version="0.2.1",
     description="Multivariate / high-dimensional statistics and time series algorithms for spatial-temporal stacks",
     long_description=README,
     long_description_content_type="text/markdown",
