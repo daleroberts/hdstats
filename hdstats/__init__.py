@@ -17,7 +17,6 @@ from .geomad import (
 from .ts import (
     cosdist,
     eucdist,
-    completion,
     discordance,
     fourier_mean,
     fourier_std,
@@ -33,7 +32,7 @@ from .ts import (
 )
 
 from .tsslow import (
-    fast_completion,
+    completion,
     smooth
 )
 
