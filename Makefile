@@ -51,7 +51,9 @@ sdist:
 	python3 setup.py sdist
 
 upload:
-	python3 setup.py sdist register upload
+	python3 setup.py sdist
+	twine upload dist/*
+	
 
 DOCKER_IMAGE = quay.io/pypa/manylinux2010_x86_64
 PLAT = manylinux2010_x86_64
