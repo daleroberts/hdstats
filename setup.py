@@ -2,7 +2,9 @@
 hdstats: High-dimensional statistics.
 """
 
+import pathlib
 import sys
+
 from setuptools import setup, find_packages, Extension
 
 try:
@@ -41,6 +43,8 @@ tests_require = [
     "pytest",
     "joblib",
 ]
+
+README = (pathlib.Path(__file__).parent / "README.md").read_text()
 
 setup(
     name="hdstats",
